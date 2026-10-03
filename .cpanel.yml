@@ -1,0 +1,9 @@
+---
+# cPanel Git deployment hook for AA Space Design.
+# For an addon domain, change DEPLOYPATH to that domain's document root.
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/public_html/
+    - npm install
+    - npm run build
+    - /bin/cp -R dist/. $DEPLOYPATH
