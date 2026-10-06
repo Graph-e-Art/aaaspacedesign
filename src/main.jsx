@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowDown, ArrowUpRight, Check, ChevronDown, Menu, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Check, ChevronDown, Expand, Menu, X } from 'lucide-react'
 import './styles.css'
 
 const A='/assets/'
@@ -21,9 +21,20 @@ const process=[
   ['03','Deliver','Our team coordinates installation, quality checks and handover with practical communication.'],
 ]
 
+const projects=[
+  {image:'1-74.webp', category:'Commercial interiors', label:'Featured interior image', alt:'Interior space with warm architectural materials'},
+  {image:'1-27.webp', category:'Office interiors', label:'Workspace image', alt:'Bright contemporary workspace interior'},
+  {image:'1-31.webp', category:'Office partitioning', label:'Partitioning image', alt:'Modern office interior with defined work zones'},
+  {image:'1-107.webp', category:'Commercial interiors', label:'Interior detail image', alt:'Commercial interior detail with considered finishes'},
+  {image:'1-111.webp', category:'Process & finishing', label:'Finishing image', alt:'Interior installation and finishing detail'},
+  {image:'1-127.webp', category:'Space planning', label:'Space planning image', alt:'Compact interior space planning reference'},
+]
+
 function App(){
   const [menuOpen,setMenuOpen]=useState(false)
   const [openService,setOpenService]=useState(0)
+  const [projectFilter,setProjectFilter]=useState('All')
+  const [selectedProject,setSelectedProject]=useState(null)
   const [submitted,setSubmitted]=useState(false)
   const scrollTo=(id)=>{ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); setMenuOpen(false) }
   return <div className="site">
@@ -46,7 +57,7 @@ function App(){
 
       <section id="services" className="services section-pad"><div className="section-heading"><span className="rule"></span><div><p className="eyebrow">What we do</p><h2>Integrated spaces, carefully delivered.</h2></div></div><div className="service-grid">{services.slice(0,3).map(([title,desc],i)=><article className="service-card" key={title}><span className="service-number">0{i+1}</span><h3>{title}</h3><p>{desc}</p><button className="circle-arrow" onClick={()=>setOpenService(i)} aria-label={`Open ${title} details`}><ArrowUpRight size={18}/></button></article>)}</div><div className="service-list">{services.slice(3).map(([title,desc],i)=><div className={'service-row '+(openService===i+3?'active':'')} key={title}><button onClick={()=>setOpenService(openService===i+3?-1:i+3)}><span>{title}</span>{openService===i+3?<ChevronDown/>:<ArrowUpRight/>}</button>{openService===i+3&&<p>{desc}</p>}</div>)}</div></section>
 
-      <section id="projects" className="feature section-pad"><div className="feature-image"><img src={A+'1-74.webp'} alt="Completed interior project detail"/></div><div className="feature-copy"><p className="eyebrow">Built around your brief</p><h2>Spaces that look considered and work hard.</h2><p>From a new office fit-out to a focused renovation, we bring design thinking and practical coordination into one clear process.</p><div className="feature-points"><span><Check size={16}/> Space planning</span><span><Check size={16}/> Material direction</span><span><Check size={16}/> Coordinated execution</span></div><button className="button dark" onClick={()=>scrollTo('contact')}>Discuss your requirements <ArrowUpRight size={17}/></button></div></section>
+      <section id="projects" className="projects section-pad" aria-labelledby="projects-title"><div className="section-heading"><span className="rule"></span><div><p className="eyebrow">Projects / Gallery</p><h2 id="projects-title">A visual library for spaces in progress.</h2></div></div><div className="gallery-intro"><p>Explore selected interior visuals across commercial spaces, office environments and project details. Project names, locations and completion information will be added after the asset review.</p><span className="gallery-note">Draft gallery · project details to be confirmed</span></div><div className="gallery-filters" role="group" aria-label="Filter gallery projects">{['All',...new Set(projects.map(project=>project.category))].map(filter=><button key={filter} className={projectFilter===filter?'active':''} onClick={()=>setProjectFilter(filter)} aria-pressed={projectFilter===filter}>{filter}</button>)}</div><div className="gallery-grid">{projects.filter(project=>projectFilter==='All'||project.category===projectFilter).map((project,index)=><article className="gallery-card" key={project.image}><button className="gallery-image" onClick={()=>setSelectedProject(project)} aria-label={`Open ${project.label}`}><img src={A+project.image} alt={project.alt} loading={index>1?'lazy':'eager'}/><span className="gallery-expand"><Expand size={17}/></span></button><div className="gallery-card-meta"><span>{project.category}</span><strong>{project.label}</strong><small>Project details to be confirmed</small></div></article>)}</div><div className="gallery-footer"><p>Have a project to add? Send the location, project type, services and approved images.</p><button className="button dark" onClick={()=>scrollTo('contact')}>Submit project details <ArrowUpRight size={17}/></button></div></section>
 
       <section id="process" className="process section-pad"><div className="process-copy"><p className="eyebrow">Our approach</p><h2>From first brief to finished space.</h2><p className="lead">A simple, transparent process helps every decision stay connected to your goals, programme and site realities.</p><div className="steps">{process.map(([no,title,desc])=><div className="step" key={no}><span className="step-no">{no}</span><div><h3>{title}</h3><p>{desc}</p></div></div>)}</div></div><div className="process-image"><img src={A+'1-111.webp'} alt="Interior installation and finishing detail"/></div></section>
 
@@ -56,6 +67,7 @@ function App(){
     </main>
 
     <footer className="footer"><div className="footer-brand"><img src={A+'aa-space-design-logo.png'} alt="AA Space Design"/><p>Thoughtful commercial interiors, space planning and coordinated project delivery.</p><div className="socials"><a href="#contact" aria-label="Instagram">IG</a><a href="#contact" aria-label="LinkedIn">in</a></div></div><div><h4>Explore</h4><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('process')}>Process</button><button onClick={()=>scrollTo('projects')}>Projects</button></div><div><h4>Services</h4><span>Office partitioning</span><span>Commercial interiors</span><span>Turnkey projects</span></div><div><h4>Contact</h4><span>aaspacedesign.com</span><span>[Phone to confirm]</span><span>[City / address to confirm]</span></div></footer>
+    {selectedProject&&<div className="lightbox" role="dialog" aria-modal="true" aria-label={selectedProject.label} onClick={()=>setSelectedProject(null)}><div className="lightbox-panel" onClick={event=>event.stopPropagation()}><button className="lightbox-close" onClick={()=>setSelectedProject(null)} aria-label="Close image preview"><X/></button><img src={A+selectedProject.image} alt={selectedProject.alt}/><div><p className="eyebrow">{selectedProject.category}</p><h3>{selectedProject.label}</h3><p>Project details to be confirmed after the approved portfolio assets are reviewed.</p></div></div></div>}
   </div>
 }
 
