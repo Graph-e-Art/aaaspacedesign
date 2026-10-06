@@ -47,7 +47,7 @@ function App(){
       <a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.png'} alt="AA Space Design" /></a>
       <button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button>
       <nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation">
-        <button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('process')}>Process</button><button onClick={()=>scrollTo('contact')}>Contact</button>
+        <button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('projects')}>Gallery</button><button onClick={()=>scrollTo('process')}>Process</button><button onClick={()=>scrollTo('contact')}>Contact</button>
       </nav>
       <button className="button dark nav-cta" onClick={()=>scrollTo('contact')}>Start a project <ArrowUpRight size={16}/></button>
     </header>
