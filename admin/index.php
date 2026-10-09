@@ -53,17 +53,28 @@ if ($databaseError !== ''): ?>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(560px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 12px;font-size:26px}p{color:#736c63;line-height:1.6}a{color:#665849;font-weight:700}</style></head><body><main class="card"><h1>Admin setup needs one check</h1><p><?= h($databaseError) ?></p><p>Confirm that <code>/home/aaspaced/cred/.env</code> contains <code>DB_HOST</code>, <code>DB_NAME</code>, <code>DB_USER</code>, and <code>DB_PASS</code>, then confirm the MySQL user has access to the database.</p><p><a href="/admin/">Return to login</a></p></main></body></html>
 <?php exit; endif;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update') {
-    $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-    $status = (string)($_POST['status'] ?? 'New');
-    $notes = trim((string)($_POST['admin_notes'] ?? ''));
-    if ($id && in_array($status, ['New', 'Contacted', 'Closed'], true)) {
-        $statement = $pdo->prepare('UPDATE contact_enquiries SET status = :status, admin_notes = :notes WHERE id = :id');
-        $statement->execute([':status' => $status, ':notes' => $notes, ':id' => $id]);
+$rows = [];
+try {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update') {
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        $status = (string)($_POST['status'] ?? 'New');
+        $notes = trim((string)($_POST['admin_notes'] ?? ''));
+        if ($id && in_array($status, ['New', 'Contacted', 'Closed'], true)) {
+            $statement = $pdo->prepare('UPDATE contact_enquiries SET status = :status, admin_notes = :notes WHERE id = :id');
+            $statement->execute([':status' => $status, ':notes' => $notes, ':id' => $id]);
+        }
     }
-}
 
-$rows = $pdo->query('SELECT * FROM contact_enquiries ORDER BY created_at DESC')->fetchAll();
+    $rows = $pdo->query('SELECT * FROM contact_enquiries ORDER BY created_at DESC')->fetchAll();
+} catch (Throwable $error) {
+    error_log('Admin enquiry query failed: ' . $error->getMessage());
+    $databaseError = 'The admin database connection works, but the contact_enquiries table or its columns do not match the required schema.';
+}
+if ($databaseError !== ''): ?>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin table error | Interior Hub</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(560px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 12px;font-size:26px}p{color:#736c63;line-height:1.6}a{color:#665849;font-weight:700}</style></head><body><main class="card"><h1>Admin table needs one check</h1><p><?= htmlspecialchars($databaseError, ENT_QUOTES, 'UTF-8') ?></p><p>In phpMyAdmin, confirm that table <code>contact_enquiries</code> includes <code>email</code>, <code>preferred_call_date</code>, <code>preferred_call_time</code>, <code>admin_notes</code>, <code>status</code>, and <code>created_at</code>.</p><p><a href="/admin/?logout=1">Return to login</a></p></main></body></html>
+<?php exit; endif;
 function h(string $value): string { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
 function whatsapp_url(string $phone, string $name): string {
     $digits = preg_replace('/[^0-9]/', '', $phone);
