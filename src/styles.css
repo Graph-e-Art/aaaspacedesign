@@ -30,3 +30,52 @@
   .brand img,
   .footer-brand img{animation:none!important;transition:none!important;transform:none!important}
 }
+
+/* Logo motion: subtle, serious, and disabled for reduced-motion users. */
+.brand,
+.footer-brand{
+  position:relative;
+  isolation:isolate;
+}
+.brand::after,
+.footer-brand::after{
+  content:"";
+  position:absolute;
+  inset:8px 0;
+  z-index:-1;
+  pointer-events:none;
+  background:linear-gradient(110deg,transparent 35%,rgba(187,3,5,.10) 50%,transparent 65%);
+  background-size:220% 100%;
+  opacity:0;
+  animation:logo-sheen 7s ease-in-out 1.2s infinite;
+}
+.brand img,
+.footer-brand img{
+  transform-origin:50% 50%;
+  animation:logo-arrive .8s cubic-bezier(.22,1,.36,1) both;
+  will-change:opacity,transform;
+}
+.brand{transition:transform .25s ease}
+.brand:hover{transform:translateY(-1px)}
+.brand:hover img{animation:logo-hover .55s ease both}
+@keyframes logo-arrive{
+  from{opacity:0;transform:translateY(7px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+@keyframes logo-hover{
+  from{transform:scale(1)}
+  55%{transform:scale(1.018)}
+  to{transform:scale(1)}
+}
+@keyframes logo-sheen{
+  0%,68%,100%{background-position:220% 0;opacity:0}
+  74%{opacity:.75}
+  86%{background-position:-20% 0;opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .brand,
+  .brand::after,
+  .footer-brand::after,
+  .brand img,
+  .footer-brand img{animation:none!important;transition:none!important;transform:none!important}
+}
