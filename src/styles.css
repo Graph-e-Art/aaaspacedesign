@@ -270,3 +270,20 @@
       radial-gradient(circle at 50% 76%, rgba(255,255,255,.62), transparent 42%);
   }
 }
+
+
+/* Enquiry form integration */
+.contact-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.contact-form .full-field { grid-column: 1 / -1; }
+.contact-form input,
+.contact-form select,
+.contact-form textarea { border-radius: 2px; }
+.contact-form select { appearance: auto; }
+.contact-form button:disabled { opacity: .65; cursor: wait; transform: none; box-shadow: none; }
+.form-submit { display: grid; gap: 12px; }
+.form-error { margin: 0; color: #9b2727; font-size: 13px; line-height: 1.5; }
+.form-honeypot { position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; opacity: 0 !important; }
+@media (max-width: 560px) {
+  .contact-form { grid-template-columns: 1fr; }
+  .contact-form .full-field { grid-column: auto; }
+}

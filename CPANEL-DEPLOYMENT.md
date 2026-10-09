@@ -30,3 +30,35 @@ Check these items in order:
 - `public_html/assets/index-*.js` exists.
 - Browser DevTools Console has no 404 errors for `/assets/...`.
 - cPanel deployment log shows the `dist/` copy task completed.
+
+## Enquiry form API and admin panel
+
+Upload these folders into the public website document root:
+
+```text
+api/
+admin/
+config/
+```
+
+Keep the real credentials outside the public document root:
+
+```text
+/home/aaspaced/cred/.env
+```
+
+The PHP API reads that file and writes enquiries to the existing `contact_enquiries` MySQL table. The frontend submits to:
+
+```text
+/api/submit-enquiry.php
+```
+
+Open the protected admin dashboard at:
+
+```text
+/admin/
+```
+
+Use `ADMIN_USERNAME` and `ADMIN_PASSWORD` from the private `.env` file. The initial agreed credentials are `admin` and `1234`; change them after first live deployment.
+
+The API uses cPanel's PHP `mail()` transport to notify `MAIL_TO`. The admin dashboard provides status updates, internal notes, and a manual WhatsApp link. Meta WhatsApp API credentials are not required.
