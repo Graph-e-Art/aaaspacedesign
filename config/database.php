@@ -14,7 +14,7 @@ function database(): PDO
     $host = env_value($env, 'DB_HOST', 'localhost');
     $name = env_value($env, 'DB_NAME', 'aaspaced_adm');
     $user = env_value($env, 'DB_USER', 'aaspaced_ng');
-    $pass = env_value($env, 'DB_PASS', '');
+    $pass = env_value($env, 'DB_PASS', env_value($env, 'DB_PASSWORD', env_value($env, 'MYSQL_PASSWORD', '')));
 
     $pdo = new PDO(
         "mysql:host={$host};dbname={$name};charset=utf8mb4",
