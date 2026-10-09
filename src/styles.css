@@ -189,3 +189,84 @@
 #contact .contact-channel:hover .contact-channel-icon { background: var(--section-primary); }
 #contact .contact-form input:focus,
 #contact .contact-form textarea:focus { border-color: var(--section-primary); box-shadow: 0 0 0 3px #86766622; }
+
+
+/* Preview: architectural wall gradients with light/dark directional splits. */
+.hero,
+#services,
+#video-gallery,
+#contact {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 0;
+  background-size: 100% 100%, 180px 180px;
+  background-blend-mode: normal, soft-light;
+}
+.hero {
+  background-image:
+    linear-gradient(105deg, #F4F3EF 0%, #F0ECE5 38%, #8C8275 100%),
+    radial-gradient(circle at 18% 30%, rgba(255,255,255,.55), transparent 42%);
+}
+#services {
+  background-image:
+    linear-gradient(105deg, #343A40 0%, #495057 42%, #F8F9FA 100%),
+    radial-gradient(circle at 76% 28%, rgba(255,255,255,.7), transparent 42%);
+}
+#video-gallery {
+  background-image:
+    linear-gradient(105deg, #F2F4F3 0%, #E9EEEB 40%, #647361 100%),
+    radial-gradient(circle at 20% 26%, rgba(255,255,255,.6), transparent 40%);
+}
+#contact {
+  background-image:
+    linear-gradient(105deg, #665849 0%, #867666 42%, #F5F2EB 100%),
+    radial-gradient(circle at 78% 30%, rgba(255,255,255,.62), transparent 42%);
+}
+.hero-copy,
+.hero-visual,
+#services > .shell,
+#video-gallery > .shell,
+#contact > * { position: relative; z-index: 1; }
+.hero h1,
+.hero .lead,
+.hero .eyebrow { text-shadow: 0 1px 0 rgba(255,255,255,.35); }
+#services .section-heading h2,
+#services .section-heading .eyebrow { color: #fff; }
+#services .rule { background: #fff; }
+#services .service-card,
+#services .service-row { background: rgba(255,255,255,.86); backdrop-filter: blur(8px); }
+#video-gallery .video-category-card { background: rgba(255,255,255,.82); backdrop-filter: blur(8px); }
+#contact .contact-copy { color: #fff; }
+#contact .contact-copy h2,
+#contact .contact-copy > p,
+#contact .contact-copy .eyebrow,
+#contact .contact-area { color: #fff; }
+#contact .contact-channel { background: rgba(61,58,53,.42); border-color: rgba(255,255,255,.28); color: #fff; backdrop-filter: blur(8px); }
+#contact .contact-channel-label { color: rgba(255,255,255,.7); }
+#contact .contact-channel-icon { background: rgba(255,255,255,.18); }
+#contact .contact-area { border-color: rgba(255,255,255,.3); }
+#contact .contact-form { background: rgba(255,255,255,.86); backdrop-filter: blur(8px); }
+
+@media (max-width: 900px) {
+  .hero {
+    background-image:
+      linear-gradient(180deg, #F4F3EF 0%, #F0ECE5 48%, #8C8275 100%),
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,.55), transparent 42%);
+  }
+  #services {
+    background-image:
+      linear-gradient(180deg, #343A40 0%, #495057 48%, #F8F9FA 100%),
+      radial-gradient(circle at 50% 72%, rgba(255,255,255,.7), transparent 42%);
+  }
+  #video-gallery {
+    background-image:
+      linear-gradient(180deg, #F2F4F3 0%, #E9EEEB 48%, #647361 100%),
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,.6), transparent 40%);
+  }
+  #contact {
+    background-image:
+      linear-gradient(180deg, #665849 0%, #867666 48%, #F5F2EB 100%),
+      radial-gradient(circle at 50% 76%, rgba(255,255,255,.62), transparent 42%);
+  }
+}
