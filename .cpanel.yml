@@ -5,3 +5,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=$HOME/public_html/
     - /bin/cp -R dist/. $DEPLOYPATH
+    - /bin/cp -R assets/. $DEPLOYPATH/assets/
