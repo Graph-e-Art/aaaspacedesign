@@ -4,7 +4,7 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-function respond(int $status, array $payload): never
+function respond(int $status, array $payload)
 {
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE);
