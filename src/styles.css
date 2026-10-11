@@ -287,3 +287,20 @@
   .contact-form { grid-template-columns: 1fr; }
   .contact-form .full-field { grid-column: auto; }
 }
+
+/* Header refinement: concise brand lockup with a quiet architectural motion layer. */
+.nav-wrap { overflow: hidden; }
+.brand-lockup { display: flex; align-items: center; gap: 18px; position: relative; z-index: 3; flex-shrink: 0; }
+.brand-tagline { max-width: 128px; color: #8a5a44; font-size: 10px; line-height: 1.35; letter-spacing: .14em; text-transform: uppercase; }
+.header-motion { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: .46; background: linear-gradient(90deg, transparent 0 58%, rgba(232,222,212,.22) 78%, transparent 100%); }
+.header-motion::after { content: ""; position: absolute; inset: -40% 0; background: repeating-linear-gradient(90deg, transparent 0 72px, rgba(138,90,68,.07) 73px, transparent 74px); transform: skewX(-18deg); animation: header-grid-drift 18s linear infinite; }
+.header-motion span { position: absolute; top: -35%; bottom: -35%; width: 1px; background: linear-gradient(180deg, transparent, rgba(138,90,68,.32), transparent); transform: rotate(18deg); animation: header-line-drift 12s ease-in-out infinite; }
+.header-motion span:nth-child(1) { right: 12%; animation-delay: -2s; }
+.header-motion span:nth-child(2) { right: 20%; height: 145%; animation-duration: 15s; animation-delay: -7s; }
+.header-motion span:nth-child(3) { right: 29%; animation-duration: 18s; animation-delay: -10s; }
+@keyframes header-line-drift { 0%,100% { opacity: .2; transform: translateX(28px) rotate(18deg); } 50% { opacity: .8; transform: translateX(-34px) rotate(18deg); } }
+@keyframes header-grid-drift { from { transform: translateX(-120px) skewX(-18deg); } to { transform: translateX(120px) skewX(-18deg); } }
+.nav, .menu-toggle { position: relative; z-index: 3; }
+@media (max-width: 900px) { .brand-lockup { gap: 10px; } .brand-tagline { max-width: 94px; font-size: 8px; } .header-motion { opacity: .34; } }
+@media (max-width: 560px) { .brand-tagline { display: none; } }
+@media (prefers-reduced-motion: reduce) { .header-motion, .header-motion::after, .header-motion span { animation: none !important; } .header-motion { display: none; } }
