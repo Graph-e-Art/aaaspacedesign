@@ -347,3 +347,9 @@
 .brand:hover { transform: translateY(-2px) scale(1.025); filter: drop-shadow(0 8px 12px rgba(138,90,68,.16)); }
 .brand:hover img { animation: logo-hover .7s cubic-bezier(.22,1,.36,1) both; }
 .brand:focus-visible { outline-offset: 5px; }
+
+/* Permanent logo treatment: warm pulse, architectural sweep, gentle breathing scale. */
+.brand::before { animation: logo-halo 6s ease-in-out infinite; }
+.brand::after { animation: logo-sweep 10s ease-in-out 1s infinite; }
+.brand img { animation: logo-breathe 8s ease-in-out infinite; }
+@keyframes logo-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.012); } }
