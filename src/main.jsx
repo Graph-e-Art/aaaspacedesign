@@ -51,6 +51,7 @@ const projects=[
 
 function App(){
   const [menuOpen,setMenuOpen]=useState(false)
+  const [scrolled,setScrolled]=useState(false)
   const [openService,setOpenService]=useState(0)
   const [projectFilter,setProjectFilter]=useState('All')
   const [selectedProject,setSelectedProject]=useState(null)
@@ -66,21 +67,26 @@ function App(){
   const openVideoGallery=(category)=>{ setSelectedVideoCategory(category); setSelectedVideo(0) }
   const closeVideoGallery=()=>{ setSelectedVideoCategory(null); setSelectedVideo(0) }
   useEffect(()=>{ const onKey=(event)=>{ if(event.key==='Escape'){ closeVideoGallery(); closeProject() } }; window.addEventListener('keydown',onKey); return()=>window.removeEventListener('keydown',onKey) },[])
+  useEffect(()=>{ const onScroll=()=>setScrolled(window.scrollY>12); onScroll(); window.addEventListener('scroll',onScroll,{passive:true}); return()=>window.removeEventListener('scroll',onScroll) },[])
   const filters=['All',...new Set(projects.map(project=>project.category))]
   const visibleProjects=projects.filter(project=>projectFilter==='All'||project.category===projectFilter)
   return <div className="site">
-    <header className="nav-wrap">
-      <div className="header-motion" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.svg'} alt="AA Space Design" /></a><span className="brand-tagline">From Concept to Completion</span></div>
-      <button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button>
-      <nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation">
-        <button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('video-gallery')}>Gallery</button><button onClick={()=>scrollTo('contact')}>Contact</button>
-      </nav>
+    <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}>
+      <div className="topbar"><span>Karachi · Serving Pakistan</span><span>Call: <a href="tel:+923009233163">+92 300 9233163</a></span><a href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>
+      <div className="header-main">
+        <div className="header-motion" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.svg'} alt="AA Space Design" /></a><span className="brand-tagline">From Concept to Completion</span></div>
+        <nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation">
+          <button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('video-gallery')}>Gallery</button><button onClick={()=>scrollTo('contact')}>Contact</button>
+        </nav>
+        <div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={18}/><span>WhatsApp</span></a><button className="header-quote" onClick={()=>scrollTo('contact')}>Get a Quote <ArrowUpRight size={15}/></button></div>
+        <button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button>
+      </div>
     </header>
 
     <main id="top">
       <section className="hero section-pad">
-        <div className="hero-copy reveal"><p className="eyebrow">Commercial interiors · Space planning · Turnkey delivery</p><h1>Designing better spaces for the way business works.</h1><p className="lead">AA Space Design creates considered workspaces through planning, interiors, partitions and coordinated project execution.</p><div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('contact')}>Request a consultation <ArrowUpRight size={18}/></button></div></div>
+        <div className="hero-copy reveal"><p className="eyebrow">From Concept to Completion</p><h1>Spaces designed around the way you live and work.</h1><p className="lead">Interior design, furniture works and complete project delivery for homes, offices and commercial spaces.</p><div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('video-gallery')}>View Our Projects <ArrowUpRight size={18}/></button><button className="text-link" onClick={()=>scrollTo('contact')}>Get a Quote <ArrowUpRight size={18}/></button></div></div>
         <div className="hero-visual reveal"><div className="hero-image main-img"><img src={A+'1-27.webp'} alt="Bright contemporary interior with warm materials"/></div><div className="hero-image inset-img"><img src={A+'1-31.webp'} alt="Modern workspace interior"/></div><div className="frame-accent" aria-hidden="true"></div><div className="scroll-card" aria-hidden="true"><ArrowDown/></div></div>
       </section>
 
