@@ -72,7 +72,6 @@ function App(){
   const visibleProjects=projects.filter(project=>projectFilter==='All'||project.category===projectFilter)
   return <div className="site">
     <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}>
-      <div className="topbar"><span className="topbar-item"><MapPin size={12}/>Karachi · Serving Pakistan</span><a className="topbar-item" href="tel:+923009233163" aria-label="Call AA Space Design"><Phone size={12}/><span>+92 300 9233163</span></a><a className="topbar-item" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={13}/><span>WhatsApp</span></a></div>
       <div className="header-main">
         <div className="header-motion" aria-hidden="true"><span></span><span></span><span></span></div>
         <div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.svg'} alt="AA Space Design" /></a><span className="brand-tagline">From Concept to Completion</span></div>

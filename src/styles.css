@@ -337,3 +337,13 @@
 .header-whatsapp:hover { color: #fff; background: #8a5a44; border-color: #8a5a44; }
 @media (max-width: 1100px) { .header-main { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); } .header-actions { gap: 10px; } .header-whatsapp span { display: none; } }
 @media (max-width: 900px) { .header-main { display: flex; gap: 12px; } .brand-lockup { justify-self: auto; } .nav { justify-self: auto; } .header-actions { justify-self: auto; } }
+
+/* Sticky fix: site overflow was trapping sticky header inside a non-scrolling ancestor. */
+.site { overflow-x: clip; overflow-y: visible; }
+.nav-wrap { position: sticky !important; top: 0 !important; }
+
+/* Logo interaction: gentle scale, lift, and warm architectural glow. */
+.brand { transition: transform .35s cubic-bezier(.22,1,.36,1), filter .35s ease; }
+.brand:hover { transform: translateY(-2px) scale(1.025); filter: drop-shadow(0 8px 12px rgba(138,90,68,.16)); }
+.brand:hover img { animation: logo-hover .7s cubic-bezier(.22,1,.36,1) both; }
+.brand:focus-visible { outline-offset: 5px; }
