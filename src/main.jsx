@@ -13,7 +13,7 @@ const services=[
   ['Civil & Structural Work','Coordinated site preparation, renovation, flooring, ceilings and structural work.'],
   ['Electrical, Plumbing & HVAC','Essential building systems planned with the interior from day one.'],
   ['IT Infrastructure','Voice, data, power cabling and technology-ready workspaces with tidy management.'],
-  ['Carpentry, Glass & Turnkey','Custom joinery, glass installation and end-to-end project execution.'],
+  ['Furniture Works','Custom joinery, glass installation and end-to-end project execution.'],
 ]
 
 const videoCategories=[
