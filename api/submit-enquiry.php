@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/smtp.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) {
@@ -73,11 +74,15 @@ try {
     ]);
 
     $env = app_env();
-    $recipient = env_value($env, 'MAIL_TO', 'info@aaspacedesign.com');
-    $subject = 'New Interior Hub enquiry from ' . $name;
-    $body = "Name: {$name}\nEmail: {$email}\nPhone / WhatsApp: {$phone}\nProject type: {$type}\nCity: {$city}\nBudget: " . ($budget ?: 'Not provided') . "\nPreferred call: " . (($date ?: 'Not provided') . ' ' . ($time ?: '')) . "\n\nMessage:\n{$message}\n";
-    $headers = "From: {$recipient}\r\nReply-To: {$email}\r\nContent-Type: text/plain; charset=UTF-8\r\n";
-    @mail($recipient, $subject, $body, $headers);
+    $recipient = (string)env_value($env, 'MAIL_TO', 'info@aaspacedesign.com');
+    $details = "Name: {$name}\nEmail: {$email}\nPhone / WhatsApp: {$phone}\nProject type: {$type}\nCity: {$city}\nBudget: " . ($budget ?: 'Not provided') . "\nPreferred call: " . (($date ?: 'Not provided') . ' ' . ($time ?: '')) . "\n\nMessage:\n{$message}\n";
+    $fromName = (string)env_value($env, 'MAIL_FROM_NAME', 'AA Associate');
+    try {
+        smtp_send($recipient, 'New Interior Hub enquiry from ' . $name, $details, $env);
+        smtp_send($email, 'Your enquiry on AA Associate', "Hello {$name},\n\nThank you for contacting {$fromName}.\n\nWe received your enquiry with these details:\n\n{$details}\nOur team will review your requirements and contact you soon.\n\nRegards,\n{$fromName}", $env);
+    } catch (Throwable $mailError) {
+        error_log('Enquiry email delivery failed: ' . $mailError->getMessage());
+    }
 
     respond(200, ['ok' => true, 'message' => 'Thank you. Your enquiry has been received.']);
 } catch (Throwable $error) {
