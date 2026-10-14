@@ -31,8 +31,8 @@ function smtp_send(string $to, string $subject, string $body, array $env): void
                 break;
             }
         }
-        if ($response === '' || !preg_match('/^([245])[0-9]{2}/', $response)) {
-            throw new RuntimeException('SMTP server rejected command.');
+        if ($response === '' || !preg_match('/^[234][0-9]{2}/', $response)) {
+            throw new RuntimeException('SMTP server rejected command: ' . trim($response));
         }
         return $response;
     };
