@@ -381,3 +381,6 @@
 
 /* Refined serious continuous motion for process graphics */
 .process-line{animation-duration:6.5s;animation-timing-function:cubic-bezier(.45,0,.55,1)}.process-dot{animation-duration:6.5s;animation-timing-function:ease-in-out}.process-shape{animation-duration:6.5s;animation-timing-function:cubic-bezier(.45,0,.55,1)}.process-graphic{opacity:.92;transition:opacity .45s ease}.service-stage-card:hover .process-graphic,.service-stage-card.active .process-graphic{opacity:1}.service-stage-card:hover .process-line,.service-stage-card.active .process-line{box-shadow:0 0 5px #fff5}.service-stage-card:hover .process-dot,.service-stage-card.active .process-dot{box-shadow:0 0 0 3px #ffffff20,0 0 8px #fff}.service-stage-card:hover .process-shape,.service-stage-card.active .process-shape{box-shadow:0 0 9px #ffffff66}
+
+/* Keep services section clean on narrow screens without decorative overflow */
+@media(max-width:900px){#services::before{display:none}}
