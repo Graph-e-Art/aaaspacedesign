@@ -372,3 +372,6 @@
 
 /* Service text: soft outer glow replaces hard outline */
 #services .service-stage-card:not(:hover):not(.active) h3,#services .service-stage-card:not(:hover):not(.active) p,#services .service-stage-card:not(:hover):not(.active) .service-card-link{-webkit-text-stroke:0!important;text-shadow:0 0 5px #fff,0 0 11px #fff,0 0 18px #ffffffb8!important}#services .service-stage-card:hover h3,#services .service-stage-card:hover p,#services .service-stage-card:hover .service-card-link,#services .service-stage-card.active h3,#services .service-stage-card.active p,#services .service-stage-card.active .service-card-link{-webkit-text-stroke:0!important;text-shadow:0 0 5px #20231f,0 0 11px #20231f,0 0 19px #20231f99!important}
+
+/* Service paragraph follows heading hover and active effect */
+#services .service-grid.service-stage-grid .service-stage-card:hover>p,#services .service-grid.service-stage-grid .service-stage-card.active>p{color:#fff!important;text-shadow:0 0 5px #20231f,0 0 11px #20231f,0 0 19px #20231f99!important;-webkit-text-stroke:0!important}
