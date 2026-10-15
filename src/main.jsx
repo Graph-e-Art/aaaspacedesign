@@ -52,7 +52,7 @@ const projects=[
 function App(){
   const [menuOpen,setMenuOpen]=useState(false)
   const [scrolled,setScrolled]=useState(false)
-  const [openService,setOpenService]=useState(0)
+  const [openService,setOpenService]=useState(-1)
   const [projectFilter,setProjectFilter]=useState('All')
   const [selectedProject,setSelectedProject]=useState(null)
   const [selectedImage,setSelectedImage]=useState(0)
