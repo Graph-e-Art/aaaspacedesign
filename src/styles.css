@@ -390,3 +390,6 @@
 @media(max-width:900px){.nav{top:calc(100% + 1px);left:0;right:0;z-index:40;background:#fbfaf7;box-shadow:0 18px 30px #1c1c1c2b}}
 /* Keep desktop motion visibly running when user allows animation */
 @media (min-width:901px) and (prefers-reduced-motion:no-preference){.header-motion{opacity:.62}.process-line,.process-dot,.process-shape{animation-play-state:running!important;will-change:transform,opacity}.brand img{will-change:transform,filter}.reveal{will-change:transform,opacity}}
+
+/* Mobile menu must anchor below header, not flow inside header content */
+@media(max-width:900px){.nav.open,.nav{position:absolute!important;top:calc(100% + 1px);left:0;right:0}}
