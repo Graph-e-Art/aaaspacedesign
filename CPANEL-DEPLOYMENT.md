@@ -62,3 +62,18 @@ Open the protected admin dashboard at:
 Use `ADMIN_USERNAME` and `ADMIN_PASSWORD` from the private `.env` file. The initial agreed credentials are `admin` and `1234`; change them after first live deployment.
 
 The API uses cPanel's PHP `mail()` transport to notify `MAIL_TO`. The admin dashboard provides status updates, internal notes, and a manual WhatsApp link. Meta WhatsApp API credentials are not required.
+
+## Dynamic project archive
+
+The project archive uses the existing MySQL connection from `/home/aaspaced/cred/.env`:
+
+```text
+DB_HOST=...
+DB_NAME=...
+DB_USER=...
+DB_PASS=...
+```
+
+Run the new `projects` table statement from `database/schema.sql` once in phpMyAdmin. The protected `/admin/` dashboard then provides the manager project form. New entries appear at `/api/projects.php` and in the homepage “Current Projects” section.
+
+Project content does **not** create Git commits. This is intentional: project records belong in MySQL, while GitHub should track code, schema, and deployment changes. cPanel Git deployment copies `prj-deploy.php` with the public site files.
