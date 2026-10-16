@@ -74,7 +74,7 @@ function App(){
     <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}>
       <div className="header-main">
         <div className="header-motion" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.svg'} alt="AA Space Design" /></a><span className="brand-tagline">From Concept to Completion</span></div>
+        <div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Space Design home"><img src={A+'aa-space-design-logo.svg'} alt="AA Space Design" /></a></div>
         <nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation">
           <button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Services</button><button onClick={()=>scrollTo('video-gallery')}>Gallery</button><button onClick={()=>scrollTo('contact')}>Contact</button>
         </nav>
