@@ -393,3 +393,20 @@
 
 /* Mobile menu must anchor below header, not flow inside header content */
 @media(max-width:900px){.nav.open,.nav{position:absolute!important;top:calc(100% + 1px);left:0;right:0}}
+
+
+/* Desktop motion: visible, restrained movement for the logo and service graphics. */
+@media (min-width:901px) and (prefers-reduced-motion:no-preference) {
+  .brand img { animation: logo-breathe-desktop 5.2s ease-in-out infinite; }
+  .service-icon svg { animation: service-icon-float-desktop 4.2s ease-in-out infinite; }
+  .service-icon::after { animation-duration: 4.2s; }
+  .process-line, .process-dot, .process-shape { animation-duration: 5.2s; }
+}
+@keyframes logo-breathe-desktop {
+  0%,100% { transform: scale(1); filter: saturate(1); }
+  50% { transform: scale(1.04); filter: saturate(1.12) drop-shadow(0 5px 9px rgba(138,90,68,.22)); }
+}
+@keyframes service-icon-float-desktop {
+  0%,100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
