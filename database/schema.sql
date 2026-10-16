@@ -30,3 +30,15 @@ CREATE TABLE IF NOT EXISTS projects (
     CONSTRAINT chk_projects_month CHECK (month BETWEEN 1 AND 12),
     CONSTRAINT chk_projects_year CHECK (year BETWEEN 2000 AND 2200)
 );
+
+CREATE TABLE IF NOT EXISTS project_media (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    project_id INT UNSIGNED NOT NULL,
+    media_type ENUM('image', 'drive') NOT NULL,
+    url VARCHAR(1000) NOT NULL,
+    label VARCHAR(180) DEFAULT NULL,
+    sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_project_media_project (project_id, sort_order),
+    CONSTRAINT fk_project_media_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);

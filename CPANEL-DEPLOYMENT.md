@@ -77,3 +77,11 @@ DB_PASS=...
 Run the new `projects` table statement from `database/schema.sql` once in phpMyAdmin. The protected `/admin/` dashboard then provides the manager project form. New entries appear at `/api/projects.php` and in the homepage “Current Projects” section.
 
 Project content does **not** create Git commits. This is intentional: project records belong in MySQL, while GitHub should track code, schema, and deployment changes. cPanel Git deployment copies `prj-deploy.php` with the public site files.
+
+## Dashboard tabs and project media
+
+`/admin/?tab=messages` opens **User Messages**. ` /admin/?tab=projects` opens **Projects Submit**.
+
+Project form supports multiple media rows. Select `Image` or `Google Drive`, paste URL, then click **+ Add image or Google Drive link** for each additional image or video. Database now uses `project_media` linked to `projects`.
+
+Homepage loads all published projects but shows three cards at once. Additional cards remain available through the horizontal scroll bar. Each project card exposes its image and Google Drive links.
