@@ -518,3 +518,8 @@
   .nav-wrap { padding-inline: 16px; }
   .hero.hero-slider { min-height: 100svh; padding: 112px 20px 42px; }
 }
+
+/* Slower client-name marquee for a calmer, more readable pace. */
+.client-row-1 .client-row-track { animation-duration: 42s; }
+.client-row-2 .client-row-track { animation-duration: 54s; }
+.client-row-3 .client-row-track { animation-duration: 46s; }
