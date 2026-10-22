@@ -434,10 +434,60 @@
 @media(prefers-reduced-motion:reduce){.client-row-track{animation:none!important;transform:none!important}}
 
 /* Stable hero video layer for index-2 only. */
-.hero-slider{position:relative;isolation:isolate;overflow:hidden;background:#242321!important;color:#fff}.hero-slider::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(20,19,18,.82),rgba(20,19,18,.2))}.hero-background-media{position:absolute;inset:0;z-index:-2;background:#242321}.hero-background-media video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.72) contrast(.96)}.hero-slider .hero-copy{position:relative;z-index:1}.hero-slider .eyebrow,.hero-slider .hero-slide-number,.hero-slider h1,.hero-slider .lead{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.2)}.hero-slider .text-link{color:#fff}.hero-slider .hero-controls button{border-color:rgba(255,255,255,.42);color:rgba(255,255,255,.75)}.hero-slider .hero-controls button.active{border-color:#fff;color:#fff}.hero-slider .button.dark{background:#fff;color:#242321}.hero-slider .hero-visual{display:none}@media(max-width:900px){.hero-slider::after{background:linear-gradient(180deg,rgba(20,19,18,.8),rgba(20,19,18,.3))}}@media(prefers-reduced-motion:reduce){.hero-background-media video{display:none}.hero-slider{background:#242321 url('/assets/media/aa-associate-hero-poster.jpg') center/cover no-repeat!important}}
+.hero-slider{position:relative;isolation:isolate;overflow:hidden;background:#242321!important;color:#fff}.hero-slider::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(20,19,18,.82),rgba(20,19,18,.2))}.hero-background-media{position:absolute;inset:0;z-index:-2;background:#242321}.hero-background-media video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.72) contrast(.96)}.hero-slider .hero-copy{position:relative;z-index:1}.hero-slider .eyebrow,.hero-slider .hero-slide-number,.hero-slider h1,.hero-slider .lead{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.2)}.hero-slider .text-link{color:#fff}.hero-slider .hero-controls button{border-color:rgba(255,255,255,.42);color:rgba(255,255,255,.75)}.hero-slider .hero-controls button.active{border-color:#fff;color:#fff}.hero-slider .button.dark{background:#fff;color:#242321}.hero-slider .hero-visual{display:none}@media(max-width:900px){.hero-slider::after{background:linear-gradient(180deg,rgba(20,19,18,.8),rgba(20,19,18,.3))}}@media(prefers-reduced-motion:reduce){.hero-background-media video{display:none}.hero-slider{background:#242321 var(--hero-poster) center/cover no-repeat!important}}
 
 /* Keep the index-2 walkthrough visible while preserving readable hero copy. */
 .hero-slider::after { background: linear-gradient(90deg, rgba(20,19,18,.58), rgba(20,19,18,.14)); }
 @media (max-width:900px) {
   .hero-slider::after { background: linear-gradient(180deg, rgba(20,19,18,.62), rgba(20,19,18,.18)); }
+}
+
+/* Index-2 minimalist layout: keep brand identity, projects and conversion path. */
+.nav-wrap { max-width: 100%; padding-inline: max(22px, calc((100vw - 1224px) / 2)); }
+.nav-wrap .header-main { width: min(100%, 1224px); margin-inline: auto; }
+.hero.hero-slider { width: 100%; max-width: none; min-height: min(78svh, 820px); margin: 0; padding: clamp(80px, 12vh, 132px) max(22px, calc((100vw - 1224px) / 2)); display: flex; align-items: center; }
+.hero-slider .hero-copy { width: min(100%, 670px); padding: 0; }
+.hero-slider .hero-copy h1 { max-width: 700px; font-size: clamp(48px, 6.2vw, 84px); }
+.trust-strip.about-anchor { min-height: 76px; padding: 16px max(22px, calc((100vw - 1224px) / 2)); flex-direction: row; justify-content: space-between; align-items: center; gap: 18px; }
+.projects.section-pad { padding-block: clamp(68px, 8vw, 104px); }
+.client-marquee-section { padding: 18px max(22px, calc((100vw - 1224px) / 2)); }
+.client-marquee-heading { align-items: baseline; margin-bottom: 10px; }
+.client-rows { border-top: 1px solid #ded8d2; }
+.client-row { border-bottom: 1px solid #ded8d2; }
+.client-row span { min-height: 44px; padding-inline: 22px; color: #302c28; font-size: 13px; }
+.client-row-1 .client-row-track { animation-duration: 25s; }
+.client-row-2 .client-row-track { animation-duration: 31s; }
+.client-row-3 .client-row-track { animation-duration: 28s; }
+.client-row:hover .client-row-track, .client-row:focus-within .client-row-track { animation-play-state: paused; }
+.contact-trigger.section-pad { min-height: 0; margin-top: 0; padding-block: 30px; }
+.footer-compact { min-height: 0 !important; padding-block: 10px !important; gap: 14px !important; }
+.footer-compact-brand img { width: 96px !important; height: 34px !important; }
+.footer-compact nav { gap: 12px; }
+.footer-compact-contact { gap: 10px; }
+@media (max-width: 900px) {
+  .hero.hero-slider { min-height: 680px; padding: 70px 24px 54px; }
+  .trust-strip.about-anchor { align-items: flex-start; flex-direction: column; padding: 18px 24px; }
+  .client-marquee-section { padding: 16px 20px; }
+  .contact-trigger.section-pad { align-items: flex-start; flex-direction: row; gap: 16px; padding: 24px 22px; }
+  .contact-trigger h2 { font-size: clamp(27px, 6vw, 42px); }
+  .footer-compact { grid-template-columns: auto 1fr auto !important; gap: 8px 14px !important; }
+  .footer-compact small { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .hero.hero-slider { min-height: 650px; padding: 66px 20px 44px; }
+  .hero-slider .hero-copy h1 { font-size: clamp(42px, 12vw, 54px); }
+  .hero-slider .hero-copy .lead { max-width: 330px; font-size: 14px; }
+  .client-marquee-heading { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .client-marquee-heading > span:last-child { font-size: 11px; }
+  .client-row span { min-height: 40px; padding-inline: 16px; font-size: 12px; }
+  .contact-trigger.section-pad { align-items: flex-start; flex-direction: column; padding: 24px 20px; }
+  .contact-trigger .button { width: 100%; }
+  .footer-compact { grid-template-columns: auto 1fr !important; padding: 10px 16px !important; }
+  .footer-compact nav { gap: 8px 12px; }
+  .footer-compact-contact { grid-column: 1 / -1; justify-self: start; }
+  .footer-compact small { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-row-track { animation: none !important; transform: none !important; }
+  .hero-slider .reveal { animation: none !important; }
 }
