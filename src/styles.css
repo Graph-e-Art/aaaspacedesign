@@ -435,3 +435,9 @@
 
 /* Stable hero video layer for index-2 only. */
 .hero-slider{position:relative;isolation:isolate;overflow:hidden;background:#242321!important;color:#fff}.hero-slider::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(20,19,18,.82),rgba(20,19,18,.2))}.hero-background-media{position:absolute;inset:0;z-index:-2;background:#242321}.hero-background-media video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.72) contrast(.96)}.hero-slider .hero-copy{position:relative;z-index:1}.hero-slider .eyebrow,.hero-slider .hero-slide-number,.hero-slider h1,.hero-slider .lead{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.2)}.hero-slider .text-link{color:#fff}.hero-slider .hero-controls button{border-color:rgba(255,255,255,.42);color:rgba(255,255,255,.75)}.hero-slider .hero-controls button.active{border-color:#fff;color:#fff}.hero-slider .button.dark{background:#fff;color:#242321}.hero-slider .hero-visual{display:none}@media(max-width:900px){.hero-slider::after{background:linear-gradient(180deg,rgba(20,19,18,.8),rgba(20,19,18,.3))}}@media(prefers-reduced-motion:reduce){.hero-background-media video{display:none}.hero-slider{background:#242321 url('/assets/media/aa-associate-hero-poster.jpg') center/cover no-repeat!important}}
+
+/* Keep the index-2 walkthrough visible while preserving readable hero copy. */
+.hero-slider::after { background: linear-gradient(90deg, rgba(20,19,18,.58), rgba(20,19,18,.14)); }
+@media (max-width:900px) {
+  .hero-slider::after { background: linear-gradient(180deg, rgba(20,19,18,.62), rgba(20,19,18,.18)); }
+}
