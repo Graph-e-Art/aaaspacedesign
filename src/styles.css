@@ -740,3 +740,90 @@
 #about.who-we-are, #services { scroll-margin-top: 150px; }
 @media (max-width: 900px) { #about.who-we-are, #services { scroll-margin-top: 124px; } }
 @media (max-width: 560px) { #about.who-we-are, #services { scroll-margin-top: 106px; } }
+
+
+/* Wider enquiry form: identity fields span top; details sit left, message right. */
+.contact-modal-content { grid-template-columns: minmax(0, .56fr) minmax(0, 1.44fr); }
+.contact-modal-content .contact-form {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px 12px;
+}
+.contact-form-identity {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+.contact-form-body {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  align-items: stretch;
+  gap: 8px 12px;
+}
+.contact-form-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px 9px;
+}
+.contact-form-details > label { min-width: 0; }
+.preferred-call-field {
+  min-width: 0;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 5px 8px 8px;
+  border: 1px solid #e1d9d0;
+}
+.preferred-call-field legend {
+  padding: 0 4px;
+  color: #5f5a54;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.preferred-call-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.contact-modal-content .contact-form .preferred-call-field label { min-width: 0; gap: 3px; }
+.contact-form-message { display: flex; min-width: 0; flex-direction: column; }
+.contact-modal-content .contact-form-message textarea {
+  height: auto;
+  min-height: 164px;
+  flex: 1 1 auto;
+  resize: vertical;
+}
+.contact-modal-content .contact-form .form-submit .button { width: 100%; }
+.contact-form-success { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  .contact-modal-content { grid-template-columns: minmax(0, .58fr) minmax(0, 1.42fr); gap: 12px; }
+  .contact-form-body { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 8px; }
+}
+@media (max-width: 760px) {
+  .contact-form-body { grid-template-columns: 1fr; }
+  .contact-modal-content .contact-form-message textarea { min-height: 68px; flex: 0 0 68px; }
+}
+@media (max-width: 560px) {
+  .contact-modal-content { grid-template-columns: 1fr; }
+  .contact-form-identity { gap: 7px 9px; }
+  .contact-form-body { grid-template-columns: 1fr; gap: 7px; }
+  .contact-form-details { gap: 7px 9px; }
+  .preferred-call-pair { gap: 7px; }
+  .contact-modal-content .contact-form-message textarea { height: 58px; min-height: 58px; flex: 0 0 58px; }
+}
+
+
+@media (max-width: 860px) and (min-width: 561px) {
+  .contact-form-body { grid-template-columns: 1fr; }
+  .contact-modal-content .contact-form-message textarea { height: 68px; min-height: 68px; flex: 0 0 68px; }
+  .contact-modal-content .contact-channel-body { min-width: 0; }
+  .contact-modal-content .contact-channel-value { font-size: 11px; line-height: 1.3; white-space: normal; overflow-wrap: anywhere; }
+}
+
+
+@media (max-width: 860px) and (min-width: 561px) {
+  .contact-modal-content { grid-template-columns: minmax(0, .62fr) minmax(0, 1.38fr); }
+  .contact-modal-content .contact-channel-value { font-size: 10px; white-space: nowrap; overflow-wrap: normal; }
+}

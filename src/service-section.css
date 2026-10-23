@@ -500,3 +500,72 @@
     transition: none;
   }
 }
+
+
+/* Editorial finish for the sofa carousel; keep controls quiet until requested. */
+.service-feature-gallery {
+  border: 1px solid rgba(36, 35, 33, .08);
+  box-shadow: 0 24px 60px -42px rgba(36, 35, 33, .58);
+}
+.service-feature-gallery::before {
+  content: "";
+  position: absolute;
+  inset: 48% 0 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(28, 27, 25, .25));
+}
+.service-feature-gallery::after {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, .34);
+  pointer-events: none;
+}
+.service-slide img { transition: transform .7s cubic-bezier(.22, 1, .36, 1); }
+.service-feature-gallery:hover .service-slide img { transform: scale(1.025); }
+.service-slide figcaption {
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, .16);
+  backdrop-filter: blur(7px);
+}
+.service-carousel-arrow {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(.94);
+  transition: opacity .2s ease, transform .2s ease, background-color .18s ease;
+}
+.service-carousel-controls {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.service-feature-gallery:hover .service-carousel-arrow,
+.service-feature-gallery:focus-within .service-carousel-arrow {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+.service-feature-gallery:hover .service-carousel-controls,
+.service-feature-gallery:focus-within .service-carousel-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+@media (hover: none), (pointer: coarse) {
+  .service-carousel-arrow,
+  .service-carousel-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .service-carousel-arrow { transform: translateY(-50%) scale(1); }
+  .service-carousel-controls { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-feature-gallery:hover .service-slide img { transform: none; }
+  .service-carousel-arrow,
+  .service-carousel-controls,
+  .service-slide img { transition: none; }
+}
