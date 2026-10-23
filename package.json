@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build && cp assets/aa-space-design-logo.svg dist/assets/aa-space-design-logo.svg && cp dist/src/index.source.html dist/index.html && rm -rf dist/src && cp dist/index.html ./index.html && cp -R dist/assets/. ./assets/",
+    "build:index-2": "node scripts/build-index-2.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 3000"
   },
   "dependencies": {

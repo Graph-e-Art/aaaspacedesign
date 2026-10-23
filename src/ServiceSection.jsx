@@ -46,10 +46,20 @@ export default function ServiceSection({ onContact }) {
             <button type="button" className="service-more-button" aria-haspopup="dialog" aria-controls="more-services-dialog" onClick={() => setIsOpen(true)}>More services <ArrowDown size={15} aria-hidden="true" /></button>
           </div>
         </div>
-        <figure className="service-feature-image">
-          <img src="/assets/drive-gallery/selected/custom-sofa-feature.jpeg" alt="Dark brown tufted sofa with a black woven frame, made by AA Associate." width="2048" height="1536" loading="lazy" decoding="async" />
-          <figcaption>Custom sofa · Furniture works</figcaption>
-        </figure>
+        <div className="service-feature-gallery" role="group" aria-label="Custom furniture and seating examples">
+          <figure className="service-photo service-photo-primary">
+            <img src="/assets/drive-gallery/selected/custom-sofa-feature.jpeg" alt="Dark brown tufted custom sofa with a woven outer frame." width="2048" height="1536" loading="lazy" decoding="async" />
+            <figcaption>Custom sofa</figcaption>
+          </figure>
+          <figure className="service-photo service-photo-secondary">
+            <img src="/assets/drive-gallery/selected/custom-chair-feature.jpeg" alt="Upholstered lounge chair with a dark frame against a teal studio wall." width="828" height="598" loading="lazy" decoding="async" />
+            <figcaption>Custom lounge chair</figcaption>
+          </figure>
+          <figure className="service-photo service-photo-tertiary">
+            <img src="/assets/drive-gallery/selected/carpentry-detail.jpg" alt="Upholstered seating and furniture workmanship in the workshop." width="1600" height="1200" loading="lazy" decoding="async" />
+            <figcaption>Upholstery &amp; seating</figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 

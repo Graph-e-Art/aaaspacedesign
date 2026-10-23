@@ -5,6 +5,7 @@ deployment:
   tasks:
     - export DEPLOYPATH=$HOME/public_html/
     - /bin/cp -R dist/. $DEPLOYPATH
+    - /bin/cp index-2.html $DEPLOYPATH
     - /bin/cp -R assets/. $DEPLOYPATH/assets/
     - /bin/cp -R api admin config $DEPLOYPATH
     - /bin/cp prj-deploy.php $DEPLOYPATH
