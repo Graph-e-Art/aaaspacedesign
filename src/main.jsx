@@ -108,8 +108,82 @@ function App(){
   const heroSlides=[{number:'01',title:'Custom sofas, made for your space.',description:'From first sketch to final stitch, we make sofas and furniture that belong in the room.',image:'drive-gallery/selected/carpentry-detail.jpg',alt:'Crafted seating and joinery detail'},{number:'02',title:'Furniture that completes the interior.',description:'A coordinated approach to sofas, woodwork, partitions and the details around them.',image:'drive-gallery/selected/commercial-interior.jpg',alt:'Commercial interior with furniture work'},{number:'03',title:'Interior work with a furniture-first eye.',description:'Thoughtful planning, reliable execution and custom pieces for homes, offices and commercial spaces.',image:'drive-gallery/selected/turnkey-01.jpg',alt:'Turnkey interior project'}]
   const filters=['All',...new Set(projects.map(project=>project.category))]
   const visibleProjects=projects.filter(project=>projectFilter==='All'||project.category===projectFilter)
+  useEffect(() => {
+    const section = document.querySelector('.client-marquee-section');
+    if (!section || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let timer;
+    let activeNode = null;
+    let activeClass = '';
+    let isInView = false;
+
+    const clearHighlight = () => {
+      if (activeNode) activeNode.classList.remove(activeClass);
+      activeNode = null;
+      activeClass = '';
+    };
+    const schedule = (delay) => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(showHighlight, delay);
+    };
+    const showHighlight = () => {
+      if (!isInView || document.hidden || section.matches(':hover, :focus-within')) {
+        schedule(1400);
+        return;
+      }
+      const candidates = Array.from(section.querySelectorAll('.client-row span')).filter((node) => {
+        const row = node.closest('.client-row');
+        if (!row) return false;
+        const itemRect = node.getBoundingClientRect();
+        const rowRect = row.getBoundingClientRect();
+        return itemRect.right > rowRect.left && itemRect.left < rowRect.right && rowRect.bottom > 0 && rowRect.top < window.innerHeight;
+      });
+      if (!candidates.length) {
+        schedule(1000);
+        return;
+      }
+      const target = candidates[Math.floor(Math.random() * candidates.length)];
+      const effectClass = Math.random() < 0.6 ? 'client-highlight-grow' : 'client-highlight-glow';
+      target.classList.add(effectClass);
+      activeNode = target;
+      activeClass = effectClass;
+      timer = window.setTimeout(() => {
+        clearHighlight();
+        schedule(2600 + Math.random() * 2400);
+      }, 2000);
+    };
+    const observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver(([entry]) => {
+          isInView = entry.isIntersecting;
+          if (isInView && !activeNode) schedule(900);
+          else if (!isInView) {
+            window.clearTimeout(timer);
+            clearHighlight();
+          }
+        }, { threshold: 0.12 })
+      : null;
+    if (observer) observer.observe(section);
+    else {
+      isInView = true;
+      schedule(1400);
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        window.clearTimeout(timer);
+        clearHighlight();
+      } else if (isInView) schedule(700);
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.clearTimeout(timer);
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearHighlight();
+    };
+  }, []);
+
   return <div className="site">
-    <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}><div className="header-main"><div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Associate home"><img src={A+'aa-associate-logo-new-j.png'} alt="AA Associate logo" /></a></div><nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation"><button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Service</button><button onClick={()=>scrollTo('projects')}>Projects</button><button onClick={()=>scrollTo('about')}>About</button><button onClick={()=>openContact()}>Contact</button></nav><div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={19}/></a><button className="header-quote" onClick={()=>openContact()}>Get a Quote <ArrowUpRight size={15}/></button></div><button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button></div></header>
+    <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}><div className="header-main"><div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Associate home"><span className="brand-palette" aria-hidden="true" /><img src={A+'aa-associate-logo-new-j.png'} alt="AA Associate logo" /></a></div><nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation"><button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Service</button><button onClick={()=>scrollTo('projects')}>Projects</button><button onClick={()=>scrollTo('about')}>About</button><button onClick={()=>openContact()}>Contact</button></nav><div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={19}/></a><button className="header-quote" onClick={()=>openContact()}>Get a Quote <ArrowUpRight size={15}/></button></div><button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button></div></header>
     <main id="top" className="preview-homepage">
       <section className="hero hero-slider section-pad" style={{'--hero-poster':`url(${A}media/aa-associate-hero-poster.jpg)`}} aria-labelledby="hero-title">
         <div className="hero-copy reveal">
