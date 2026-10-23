@@ -523,3 +523,117 @@
 .client-row-1 .client-row-track { animation-duration: 42s; }
 .client-row-2 .client-row-track { animation-duration: 54s; }
 .client-row-3 .client-row-track { animation-duration: 46s; }
+
+
+/* index-2 interaction fixes: contact dialog layers above navigation and keeps close control reachable. */
+.contact-modal { z-index: 1200; }
+.contact-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fbfaf7;
+}
+.contact-modal-header .lightbox-close-button {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+}
+
+/* Projects open only when a visitor requests them. */
+#projects.projects {
+  padding-block: clamp(56px, 8vw, 96px);
+}
+.projects-disclosure-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 30px;
+  background: #f1eee8;
+}
+.projects-disclosure-bar .section-heading {
+  margin: 0;
+}
+#projects.is-expanded .projects-disclosure-bar {
+  margin-bottom: 30px;
+}
+.projects-disclosure-button {
+  display: inline-flex;
+  min-width: 168px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 11px 16px;
+  border: 1px solid #242321;
+  background: #242321;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease;
+}
+.projects-disclosure-button:hover {
+  background: #8a5a44;
+  border-color: #8a5a44;
+}
+.projects-disclosure-button:focus-visible {
+  outline: 3px solid #66735b;
+  outline-offset: 3px;
+}
+.projects-disclosure-icon {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+.projects-content[hidden] {
+  display: none !important;
+}
+.projects-content:not([hidden]) {
+  animation: projects-reveal .32s ease-out both;
+}
+@keyframes projects-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 560px) {
+  .contact-modal-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+  }
+  .projects-disclosure-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 24px 20px;
+  }
+  .projects-disclosure-button {
+    width: 100%;
+  }
+  #projects.is-expanded .projects-disclosure-bar {
+    margin-bottom: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .projects-content:not([hidden]) {
+    animation: none;
+  }
+  .projects-disclosure-button {
+    transition: none;
+  }
+}
+
+
+@media (max-width: 560px) {
+  .contact-modal-shell {
+    padding: 0;
+  }
+  .contact-modal-header {
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 16px;
+  }
+  .contact-modal-content {
+    padding: 24px 20px 20px;
+  }
+}

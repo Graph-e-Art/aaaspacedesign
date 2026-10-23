@@ -89,50 +89,155 @@
 }
 
 .service-feature-gallery {
-  display: grid;
+  position: relative;
   min-height: 440px;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 6px;
   overflow: hidden;
   background: #e7dfd5;
+  isolation: isolate;
 }
 
-.service-photo {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
+.service-slide {
+  position: absolute;
+  inset: 0;
   margin: 0;
   overflow: hidden;
-  background: #e7dfd5;
 }
 
-.service-photo-primary {
-  grid-row: 1 / span 2;
-}
-
-.service-photo img {
+.service-slide img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.service-photo-primary img {
   object-position: center 54%;
+  animation: service-image-enter .42s cubic-bezier(.22, 1, .36, 1) both;
 }
 
-.service-photo figcaption {
+.service-slide figcaption {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  max-width: 100%;
-  padding: 9px 11px;
+  left: 16px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 190px);
+  padding: 9px 12px;
   background: rgba(36, 35, 33, .88);
   color: #fff;
-  font-size: 9px;
-  letter-spacing: .08em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
   text-transform: uppercase;
+}
+
+.service-slide figcaption span {
+  color: #e5d9ce;
+  font-size: 9px;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+.service-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, .7);
+  background: rgba(36, 35, 33, .84);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+
+.service-carousel-arrow:hover {
+  background: #242321;
+}
+
+.service-carousel-previous {
+  left: 14px;
+}
+
+.service-carousel-next {
+  right: 14px;
+}
+
+.service-carousel-controls {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 5px;
+  background: rgba(36, 35, 33, .88);
+}
+
+.service-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.service-carousel-dot {
+  display: grid;
+  width: 34px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.service-carousel-dot span {
+  width: 6px;
+  height: 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .6);
+  transition: width .2s ease, background-color .2s ease;
+}
+
+.service-carousel-dot.is-active span {
+  width: 18px;
+  background: #fff;
+}
+
+.service-carousel-toggle {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.service-carousel-arrow:focus-visible,
+.service-carousel-dot:focus-visible,
+.service-carousel-toggle:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.service-carousel-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes service-image-enter {
+  from { opacity: .72; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .service-more-dialog {
@@ -283,10 +388,48 @@
     aspect-ratio: 4 / 3;
   }
 
-  .service-photo figcaption {
-    padding: 6px 7px;
+  .service-slide figcaption {
+    left: 8px;
+    bottom: 10px;
+    gap: 7px;
+    max-width: calc(100% - 150px);
+    padding: 7px 8px;
     font-size: 8px;
-    letter-spacing: .04em;
+    letter-spacing: .035em;
+  }
+
+  .service-slide figcaption span {
+    font-size: 8px;
+  }
+
+  .service-carousel-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .service-carousel-previous {
+    left: 8px;
+  }
+
+  .service-carousel-next {
+    right: 8px;
+  }
+
+  .service-carousel-controls {
+    right: 8px;
+    bottom: 8px;
+    gap: 0;
+    padding: 2px;
+  }
+
+  .service-carousel-dot {
+    width: 28px;
+    height: 36px;
+  }
+
+  .service-carousel-toggle {
+    width: 36px;
+    height: 36px;
   }
 
   .service-feature-copy {
@@ -344,6 +487,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .service-slide img {
+    animation: none;
+  }
+
+  .service-carousel-dot span {
+    transition: none;
+  }
+
   .service-more-button,
   .service-option {
     transition: none;
