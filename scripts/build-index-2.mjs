@@ -6,7 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const outputDir = await mkdtemp(path.join(os.tmpdir(), 'aa-index-2-build-'))
+  const outputDir = await mkdtemp(path.join(os.tmpdir(), 'aa-homepage-build-'))
 const targetAssetsDir = path.join(root, 'assets')
 
 try {
@@ -32,7 +32,7 @@ try {
   await copyFile(jsPath, path.join(targetAssetsDir, 'index-2.js'))
   await copyFile(cssPath, path.join(targetAssetsDir, 'index-2.css'))
 
-  const htmlPath = path.join(root, 'index-2.html')
+  const htmlPath = path.join(root, 'index.html')
   const html = await readFile(htmlPath, 'utf8')
   const nextJsTag = `src="/assets/index-2.js?v=${cacheKey}"`
   const nextCssTag = `href="/assets/index-2.css?v=${cacheKey}"`
@@ -40,11 +40,11 @@ try {
     .replace(/src="\/assets\/index-2\.js(?:\?v=[^"]*)?"/, nextJsTag)
     .replace(/href="\/assets\/index-2\.css(?:\?v=[^"]*)?"/, nextCssTag)
   if (!updatedHtml.includes(nextJsTag) || !updatedHtml.includes(nextCssTag)) {
-    throw new Error('Could not update both index-2 bundle references in index-2.html.')
+    throw new Error('Could not update both homepage bundle references in index.html.')
   }
   await writeFile(htmlPath, updatedHtml)
 
-  console.log(`Updated index-2 bundles (cache key ${cacheKey}).`)
+  console.log(`Updated homepage bundles (cache key ${cacheKey}).`)
   console.log(`JS: ${jsBytes.length} bytes; CSS: ${cssBytes.length} bytes.`)
 } finally {
   await rm(outputDir, { recursive: true, force: true })

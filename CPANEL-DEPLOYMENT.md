@@ -17,9 +17,9 @@ The repository contains a Vite React source project. cPanel was serving the sour
 7. Confirm the deployment log contains successful `npm install`, `npm run build`, and copy steps.
 8. Clear browser cache and test the domain in a private window.
 
-The repository includes the tested production build in `dist/`, `index.html`, `index-2.html`, and root `assets/`. The deployment hook copies `dist/.`, `index-2.html`, and root `assets/` into the selected document root, so cPanel does not need Node.js or npm for deployment. The root `index.html` and `assets/` fallback also allow the site to work when cPanel points the domain directly at the Git checkout.
+The approved client page is now `index.html`. The previous homepage is preserved as `index-3.html`. The deployment hook copies `dist/.`, the `index-3.html` backup, and root `assets/` into the selected document root, so cPanel does not need Node.js or npm for deployment. The root `index.html` and `assets/` fallback also allow the site to work when cPanel points the domain directly at the Git checkout.
 
-When the main page source changes, run `pnpm build`. When the shared React source changes for the alternate `/index-2.html` page, run `pnpm build:index-2`; this updates its separate JS/CSS bundle and cache key without replacing the root `index.html`. Commit the generated outputs, push them, then deploy that commit from cPanel.
+When the shared React source changes, run `pnpm build`. It refreshes the approved homepage bundle and cache key, then writes the current `index.html` and assets into `dist/` without replacing the source page. Commit the generated outputs, push them, then deploy that commit from cPanel.
 
 ## If domain still shows blank page
 
