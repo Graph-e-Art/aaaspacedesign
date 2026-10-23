@@ -8,12 +8,14 @@ try {
     $pdo = database();
     $year = filter_input(INPUT_GET, 'year', FILTER_VALIDATE_INT);
     $month = filter_input(INPUT_GET, 'month', FILTER_VALIDATE_INT);
+    $clientId = filter_input(INPUT_GET, 'client_id', FILTER_VALIDATE_INT);
     $limit = min(max((int)($_GET['limit'] ?? 100), 1), 100);
-    $where = ["status = 'Published'"];
+    $where = ["p.status = 'Published'"];
     $params = [];
-    if ($year) { $where[] = 'year = :year'; $params[':year'] = $year; }
-    if ($month) { $where[] = 'month = :month'; $params[':month'] = $month; }
-    $sql = 'SELECT id, title, year, month, description, image_url, embed_url, created_at FROM projects WHERE ' . implode(' AND ', $where) . ' ORDER BY year DESC, month DESC, id DESC LIMIT ' . $limit;
+    if ($year) { $where[] = 'p.year = :year'; $params[':year'] = $year; }
+    if ($month) { $where[] = 'p.month = :month'; $params[':month'] = $month; }
+    if ($clientId) { $where[] = 'p.client_id = :client_id'; $params[':client_id'] = $clientId; }
+    $sql = 'SELECT p.id, p.client_id, c.name AS client_name, p.title, p.year, p.month, p.description, p.image_url, p.embed_url, p.created_at FROM projects p LEFT JOIN clients c ON c.id = p.client_id WHERE ' . implode(' AND ', $where) . ' ORDER BY p.year DESC, p.month DESC, p.id DESC LIMIT ' . $limit;
     $statement = $pdo->prepare($sql);
     $statement->execute($params);
     $projects = $statement->fetchAll();
@@ -28,6 +30,7 @@ try {
         }
         foreach ($projects as &$project) {
             $project['id'] = (int)$project['id'];
+            $project['client_id'] = $project['client_id'] === null ? null : (int)$project['client_id'];
             $project['year'] = (int)$project['year'];
             $project['month'] = (int)$project['month'];
             $project['media'] = $mediaByProject[$project['id']] ?? [];
@@ -40,7 +43,7 @@ try {
     }
     $years = $pdo->query("SELECT DISTINCT year FROM projects WHERE status = 'Published' ORDER BY year DESC")->fetchAll(PDO::FETCH_COLUMN);
     $months = $pdo->query("SELECT DISTINCT month FROM projects WHERE status = 'Published' ORDER BY month ASC")->fetchAll(PDO::FETCH_COLUMN);
-    echo json_encode(['ok' => true, 'projects' => $projects, 'years' => array_map('intval', $years), 'months' => array_map('intval', $months)], JSON_UNESCAPED_SLASHES);
+    echo json_encode(['ok' => true, 'projects' => $projects, 'years' => array_map('intval', $years), 'months' => array_map('intval', $months)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Throwable $error) {
     error_log('Project feed failed: ' . $error->getMessage());
     http_response_code(503);

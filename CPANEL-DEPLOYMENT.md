@@ -85,3 +85,9 @@ Project content does **not** create Git commits. This is intentional: project re
 Project form supports multiple media rows. Select `Image` or `Google Drive`, paste URL, then click **+ Add image or Google Drive link** for each additional image or video. Database now uses `project_media` linked to `projects`.
 
 Homepage loads all published projects but shows three cards at once. Additional cards remain available through the horizontal scroll bar. Each project card exposes its image and Google Drive links.
+
+## Client tags and client project galleries
+
+Back up MySQL before deployment. For an existing site, run `database/migrations/20261023_client_tags.sql` once in phpMyAdmin. It creates client tags, seeds the approved roster, and adds nullable `projects.client_id`; existing project rows stay unassigned until edited. Do not run the migration twice because its `ALTER TABLE` step is one-time.
+
+The protected `/admin/?tab=projects` page lets an admin add client tags and choose one when entering each new project. The homepage client marquee loads names from `/api/clients.php`; selecting a client opens published projects, and selecting a project opens its existing media gallery. Fresh installations can use the updated `database/schema.sql` instead of the migration.
