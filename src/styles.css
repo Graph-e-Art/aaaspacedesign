@@ -637,3 +637,106 @@
     padding: 24px 20px 20px;
   }
 }
+
+
+/* Short, furniture-first introduction directly below the hero. */
+.who-we-are.section-pad {
+  display: grid;
+  grid-template-columns: minmax(0, .55fr) minmax(0, 1.45fr);
+  gap: clamp(30px, 7vw, 110px);
+  align-items: start;
+  padding: clamp(42px, 5.5vw, 68px) max(22px, calc((100vw - 1224px) / 2));
+  background: #fbfaf7;
+}
+.who-we-are-label { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.who-we-are-label .rule { margin: 0; }
+.who-we-are-label .eyebrow { margin: 0; color: #8a5a44; }
+.who-we-are-location { margin-top: 20px; color: #68645e; font-size: 12px; letter-spacing: .04em; }
+.who-we-are-content { max-width: 760px; }
+.who-we-are-content h2 { margin: 0 0 14px; color: #242321; font-size: clamp(34px, 4.2vw, 54px); font-weight: 500; line-height: 1.04; letter-spacing: -.055em; }
+.who-we-are-content p { max-width: 680px; margin: 0 0 18px; color: #68645e; font-size: 15px; line-height: 1.7; }
+.who-we-are-content .text-link { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Put project detail above the fixed nav, with its close control below it. */
+.project-lightbox { z-index: 1300; padding: 148px 22px 22px; place-items: start center; }
+.project-lightbox-inner { max-height: calc(100dvh - 170px); padding: 20px 34px 34px; }
+.project-lightbox .lightbox-header { position: sticky; top: 0; z-index: 5; background: #faf8f5; }
+
+/* Compact contact dialog: retain every field while keeping the form in view. */
+.contact-modal { padding: 12px; overflow: hidden; }
+.contact-modal-shell { display: flex; flex-direction: column; width: min(1120px, 100%); height: auto; max-height: calc(100dvh - 24px); overflow: auto; padding: 18px; }
+.contact-modal-header { flex: 0 0 auto; align-items: center; gap: 16px; padding-bottom: 12px; }
+.contact-modal-header h2 { max-width: 760px; font-size: clamp(28px, 3.2vw, 40px); line-height: 1.04; }
+.contact-modal-content { display: grid; flex: 0 0 auto; min-height: 0; grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); gap: 20px; padding: 14px 0 0; overflow: visible; }
+.contact-modal-content .contact-copy { min-width: 0; align-self: start; }
+.contact-modal-content .contact-copy > .eyebrow { margin: 0 0 6px; }
+.contact-modal-content .contact-copy > p:not(.eyebrow) { margin: 0; font-size: 13px; line-height: 1.45; }
+.contact-modal-content .contact-channels { gap: 8px; margin-top: 14px; }
+.contact-modal-content .contact-channel { min-height: 52px; gap: 10px; padding: 7px 10px; }
+.contact-modal-content .contact-channel-icon { width: 36px; height: 36px; flex: 0 0 36px; }
+.contact-modal-content .contact-area { margin-top: 8px; padding-top: 8px; font-size: 12px; }
+.contact-modal-content .contact-form { display: grid; flex: 0 0 auto; height: auto; min-height: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 8px 12px; overflow: visible; padding: 14px; }
+.contact-modal-content .contact-form label { min-width: 0; gap: 4px; font-size: 11px; line-height: 1.2; }
+.contact-modal-content .contact-form input,
+.contact-modal-content .contact-form select,
+.contact-modal-content .contact-form textarea { width: 100%; min-width: 0; min-height: 38px; padding: 7px 9px; font-size: 12px; }
+.contact-modal-content .contact-form textarea { height: 54px; min-height: 54px; resize: none; }
+.contact-modal-content .contact-form .full-field { grid-column: 1 / -1; }
+.contact-modal-content .contact-form .form-submit { display: grid; grid-column: 1 / -1; gap: 6px; }
+.contact-modal-content .contact-form .form-submit .button { min-height: 40px; padding-block: 9px; }
+
+@media (max-width: 900px) {
+  .who-we-are.section-pad { grid-template-columns: 1fr; gap: 16px; padding: 42px 24px; }
+  .who-we-are-label { flex-direction: row; align-items: center; gap: 12px; }
+  .who-we-are-location { margin: 0 0 0 auto; }
+  .who-we-are-content h2 { max-width: 680px; font-size: clamp(32px, 5.2vw, 42px); }
+  .project-lightbox { padding: 122px 16px 16px; }
+  .project-lightbox-inner { max-height: calc(100dvh - 138px); padding: 18px 22px 24px; }
+  .contact-modal-shell { padding: 16px; }
+  .contact-modal-content { grid-template-columns: minmax(0, .68fr) minmax(0, 1.32fr); gap: 14px; padding-top: 12px; }
+  .contact-modal-content .contact-channel { min-height: 48px; padding: 6px 8px; }
+  .contact-modal-content .contact-form { gap: 7px 8px; padding: 12px; }
+}
+
+@media (max-width: 560px) {
+  .who-we-are.section-pad { gap: 14px; padding: 36px 20px 34px; }
+  .who-we-are-label { gap: 9px; }
+  .who-we-are-label .eyebrow { font-size: 10px; }
+  .who-we-are-location { font-size: 11px; }
+  .who-we-are-content h2 { margin-bottom: 11px; font-size: clamp(30px, 7.8vw, 38px); }
+  .who-we-are-content p { margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
+  .project-lightbox { padding: 104px 10px 10px; }
+  .project-lightbox-inner { max-height: calc(100dvh - 114px); padding: 16px; }
+  .contact-modal { padding: 4px; place-items: center; }
+  .contact-modal-shell { width: 100%; height: auto; max-height: calc(100dvh - 8px); overflow: auto; padding: 12px; }
+  .contact-modal-header { align-items: flex-start; gap: 8px; padding-bottom: 10px; }
+  .contact-modal-header h2 { max-width: 250px; font-size: clamp(24px, 6.2vw, 29px); line-height: 1.05; }
+  .contact-modal-header .lightbox-close-button { min-width: 76px; min-height: 42px; padding: 7px; }
+  .contact-modal-content { grid-template-columns: 1fr; gap: 0; padding: 10px 0 0; overflow: visible; }
+  .contact-modal-content .contact-copy { display: none; }
+  .contact-modal-content .contact-form { height: auto; min-height: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 7px 9px; overflow: visible; padding: 12px; }
+  .contact-modal-content .contact-form label { gap: 3px; font-size: 10px; }
+  .contact-modal-content .contact-form input,
+  .contact-modal-content .contact-form select,
+  .contact-modal-content .contact-form textarea { min-height: 36px; padding: 6px 7px; font-size: 11px; }
+  .contact-modal-content .contact-form textarea { height: 54px; min-height: 54px; }
+  .contact-modal-content .contact-form .full-field { grid-column: 1 / -1; }
+}
+
+
+/* Keep the original proof points as a compact companion to the About copy. */
+.compact-trust-strip { display: flex; min-height: 62px; align-items: center; justify-content: space-between; gap: 18px; padding: 14px max(22px, calc((100vw - 1224px) / 2)); background: #f2efe9; }
+.compact-trust-strip > p { margin: 0; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.compact-trust-strip > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px clamp(14px, 2vw, 26px); }
+.compact-trust-strip span { color: #5e5a55; font-size: 12px; white-space: nowrap; }
+@media (max-width: 560px) {
+  .compact-trust-strip { min-height: 0; align-items: flex-start; flex-direction: column; gap: 9px; padding: 14px 20px; }
+  .compact-trust-strip > div { gap: 7px 14px; }
+  .compact-trust-strip span { font-size: 11px; }
+}
+
+
+/* Keep fixed-navigation anchors visible rather than placing headings underneath it. */
+#about.who-we-are, #services { scroll-margin-top: 150px; }
+@media (max-width: 900px) { #about.who-we-are, #services { scroll-margin-top: 124px; } }
+@media (max-width: 560px) { #about.who-we-are, #services { scroll-margin-top: 106px; } }
