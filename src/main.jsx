@@ -199,7 +199,6 @@ function App(){
           <h1 id="hero-title">{heroSlides[heroSlide].title}</h1>
           <p className="lead">{heroSlides[heroSlide].description}</p>
           <div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('projects')}>See more works <ArrowUpRight size={18}/></button><button className="text-link" onClick={()=>openContact()}>Start a project <ArrowUpRight size={18}/></button></div>
-          <div className="hero-controls" aria-label="Hero slides">{heroSlides.map((slide,index)=><button key={slide.number} className={heroSlide===index?'active':''} onClick={()=>setHeroSlide(index)} aria-label={`Show slide ${index+1}`}><span>{slide.number}</span></button>)}</div>
         </div>
         <div className="hero-background-media" aria-hidden="true"><video autoPlay={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} muted loop playsInline preload={window.matchMedia('(prefers-reduced-motion: reduce)').matches?'none':'metadata'} poster={A+'media/aa-associate-hero-poster.jpg'}><source src={A+'media/aa-associate-hero.webm'} type="video/webm"/><source src={A+'media/aa-associate-hero.mp4'} type="video/mp4"/></video></div>
       </section>
