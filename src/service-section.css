@@ -1,0 +1,331 @@
+#services.service-feature-section {
+  padding-top: 88px;
+  padding-bottom: 96px;
+  background: #fbfaf7;
+  background-image: none;
+}
+
+.service-feature-card {
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  align-items: stretch;
+  background: #f1eee8;
+}
+
+.service-feature-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(30px, 5.4vw, 72px);
+}
+
+.service-feature-copy .eyebrow {
+  margin-bottom: 24px;
+  color: #8a5a44;
+}
+
+.service-feature-copy h2 {
+  max-width: 540px;
+  margin: 0;
+  color: #242321;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(38px, 4.4vw, 62px);
+  font-weight: 500;
+  letter-spacing: -.055em;
+  line-height: .99;
+}
+
+.service-feature-copy h2 span {
+  color: #66735b;
+}
+
+.service-feature-description {
+  max-width: 430px;
+  margin: 24px 0 30px;
+  color: #625c57;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.service-feature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+
+.service-feature-actions .button {
+  min-height: 48px;
+  padding: 14px 18px;
+  border-radius: 0;
+}
+
+.service-more-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid #b8aaa0;
+  background: transparent;
+  color: #242321;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease;
+}
+
+.service-more-button:hover {
+  border-color: #8a5a44;
+  color: #8a5a44;
+}
+
+.service-more-button:focus-visible,
+.service-dialog-close:focus-visible,
+.service-option:focus-visible {
+  outline: 3px solid #66735b;
+  outline-offset: 3px;
+}
+
+.service-feature-image {
+  position: relative;
+  min-height: 440px;
+  margin: 0;
+  overflow: hidden;
+  background: #e7dfd5;
+}
+
+.service-feature-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  object-fit: cover;
+  object-position: center 54%;
+}
+
+.service-feature-image figcaption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 12px 16px;
+  background: rgba(36, 35, 33, .88);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.service-more-dialog {
+  width: min(920px, calc(100vw - 48px));
+  max-width: none;
+  max-height: min(760px, calc(100dvh - 48px));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e2dbd3;
+  background: #fbfaf7;
+  color: #242321;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, .28);
+}
+
+.service-more-dialog[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.service-more-dialog::backdrop {
+  background: rgba(28, 27, 25, .68);
+  backdrop-filter: blur(3px);
+}
+
+.service-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 30px 34px 24px;
+  border-bottom: 1px solid #e2dbd3;
+}
+
+.service-dialog-header .eyebrow {
+  margin-bottom: 13px;
+}
+
+.service-dialog-header h2 {
+  margin: 0;
+  color: #242321;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 500;
+  letter-spacing: -.05em;
+  line-height: 1;
+}
+
+.service-dialog-header p:last-child {
+  margin: 12px 0 0;
+  color: #625c57;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.service-dialog-close {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid #d8cec5;
+  background: transparent;
+  color: #242321;
+  cursor: pointer;
+}
+
+.service-dialog-close:hover {
+  border-color: #8a5a44;
+  color: #8a5a44;
+}
+
+.service-dialog-body {
+  overflow-y: auto;
+  padding: 24px 34px 34px;
+}
+
+.service-dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.service-option {
+  display: grid;
+  min-height: 116px;
+  grid-template-columns: 30px minmax(0, 1fr) 18px;
+  align-items: start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #e1d9d0;
+  background: #fff;
+  color: #242321;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease;
+}
+
+.service-option:hover {
+  border-color: #8a5a44;
+  background: #f5f1eb;
+}
+
+.service-option-number {
+  padding-top: 3px;
+  color: #8a5a44;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.service-option-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.service-option-copy strong {
+  color: #242321;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.service-option-copy > span {
+  color: #625c57;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.service-option-arrow {
+  margin-top: 2px;
+  color: #8a5a44;
+}
+
+@media (max-width: 760px) {
+  .service-feature-section {
+    padding-top: 64px;
+    padding-bottom: 68px;
+  }
+
+  .service-feature-card {
+    grid-template-columns: 1fr;
+  }
+
+  .service-feature-image {
+    min-height: 0;
+    order: -1;
+    aspect-ratio: 4 / 3;
+  }
+
+  .service-feature-image img {
+    min-height: 0;
+  }
+
+  .service-feature-copy {
+    padding: 30px 24px 34px;
+  }
+
+  .service-feature-copy .eyebrow {
+    margin-bottom: 18px;
+  }
+
+  .service-feature-copy h2 {
+    font-size: clamp(38px, 10vw, 52px);
+  }
+
+  .service-feature-description {
+    margin: 18px 0 24px;
+    font-size: 14px;
+  }
+
+  .service-more-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border: 0;
+  }
+
+  .service-dialog-header {
+    gap: 14px;
+    padding: 22px 20px 18px;
+  }
+
+  .service-dialog-header h2 {
+    font-size: 36px;
+  }
+
+  .service-dialog-header p:last-child {
+    max-width: 290px;
+    font-size: 13px;
+  }
+
+  .service-dialog-body {
+    padding: 18px 20px 28px;
+  }
+
+  .service-dialog-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .service-option {
+    min-height: 96px;
+    padding: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-more-button,
+  .service-option {
+    transition: none;
+  }
+}

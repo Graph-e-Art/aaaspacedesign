@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowDown, ArrowUpRight, Check, ChevronDown, Expand, HardHat, LayoutGrid, Mail, MapPin, Menu, MessageCircle, PenTool, Phone, Play, X } from 'lucide-react'
+import ServiceSection from './ServiceSection.jsx'
 import './styles.css'
 
 const A='/assets/'
@@ -119,6 +120,7 @@ function App(){
         <div className="hero-background-media" aria-hidden="true"><video autoPlay={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} muted loop playsInline preload={window.matchMedia('(prefers-reduced-motion: reduce)').matches?'none':'metadata'} poster={A+'media/aa-associate-hero-poster.jpg'}><source src={A+'media/aa-associate-hero.webm'} type="video/webm"/><source src={A+'media/aa-associate-hero.mp4'} type="video/mp4"/></video></div>
       </section>
       <section id="about" className="trust-strip section-pad about-anchor"><p>Built around your brief</p><div><span>Custom sofas</span><span>Furniture making</span><span>Interior execution</span><span>Karachi · Pakistan</span></div></section>
+      <ServiceSection onContact={openContact}/>
 
       <section id="projects" className="projects section-pad" aria-labelledby="projects-title"><div className="section-heading"><span className="rule"></span><div><p className="eyebrow">Selected work</p><h2 id="projects-title">See the work in context.</h2></div></div><div className="projects-intro-row"><p>Furniture, fit-out and interior details presented together. Select a project to view its supplied images.</p><button className="text-link" onClick={()=>openContact()}>Discuss your space <ArrowUpRight size={16}/></button></div><div className="gallery-grid preview-gallery">{projects.slice(0,6).map((project,index)=><article className="gallery-card" key={project.category}><button className="gallery-image" onClick={()=>project.images.length&&openProject(project)} disabled={!project.images.length}>{project.images.length?<img src={driveAsset(project.images[0])} alt={project.alt} loading="lazy"/>:<div className="gallery-placeholder">Image coming soon</div>}<span className="gallery-hover-label">View project <ArrowUpRight size={16}/></span></button><div className="gallery-card-meta"><span>0{index+1} / Selected work</span><strong>{project.label}</strong></div></article>)}</div><div className="gallery-footer"><p>More projects are being added to the archive.</p><button className="button dark" onClick={openContact}>Start a project <ArrowUpRight size={17}/></button></div></section>
 
