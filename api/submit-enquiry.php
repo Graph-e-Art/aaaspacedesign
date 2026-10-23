@@ -78,7 +78,7 @@ try {
     $details = "Name: {$name}\nEmail: {$email}\nPhone / WhatsApp: {$phone}\nProject type: {$type}\nCity: {$city}\nBudget: " . ($budget ?: 'Not provided') . "\nPreferred call: " . (($date ?: 'Not provided') . ' ' . ($time ?: '')) . "\n\nMessage:\n{$message}\n";
     $fromName = (string)env_value($env, 'MAIL_FROM_NAME', 'AA Associate');
     try {
-        smtp_send($recipient, 'New Interior Hub enquiry from ' . $name, $details, $env);
+        smtp_send($recipient, 'New AA Associate enquiry from ' . $name, $details, $env);
         smtp_send($email, 'Your enquiry on AA Associate', "Hello {$name},\n\nThank you for contacting {$fromName}.\n\nWe received your enquiry with these details:\n\n{$details}\nOur team will review your requirements and contact you soon.\n\nRegards,\n{$fromName}", $env);
     } catch (Throwable $mailError) {
         error_log('Enquiry email delivery failed: ' . $mailError->getMessage());
