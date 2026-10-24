@@ -1,69 +1,129 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Play } from 'lucide-react'
+import { normalizeProjectImageUrl, projectImageSources, projectPreviewSlides } from './projectThumbnailData.js'
 
-function driveFileId(url) {
-  try {
-    const parsed = new URL(String(url))
-    const isDriveHost = parsed.hostname === 'drive.google.com' || parsed.hostname.endsWith('.drive.google.com')
-    if (!isDriveHost) return ''
-    return parsed.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || parsed.searchParams.get('id') || ''
-  } catch {
-    return ''
-  }
-}
+export { normalizeProjectImageUrl, projectImageSources, projectPreviewSlides }
 
-export function normalizeProjectImageUrl(url) {
-  const value = String(url || '').trim()
-  if (!value) return ''
-  const id = driveFileId(value)
-  return id ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200` : value
-}
+const SLIDE_INTERVAL_MS = 4000
+const FADE_DURATION_MS = 600
 
-export function projectImageSources(project, limit = 3) {
-  const mediaImages = Array.isArray(project?.media)
-    ? project.media.filter((item) => item?.type === 'image' && item.url).map((item) => item.url)
-    : []
-  const candidates = [...mediaImages, project?.image_url].filter(Boolean)
-  const seen = new Set()
-  const images = []
-
-  for (const candidate of candidates) {
-    const url = normalizeProjectImageUrl(candidate)
-    if (url && !seen.has(url)) {
-      seen.add(url)
-      images.push(url)
-    }
-    if (images.length >= limit) break
-  }
-
-  return images
+function prefersReducedMotion() {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
 export default function ProjectThumbnail({ project }) {
-  const sources = projectImageSources(project, 3)
-  const signature = sources.join('\u001f')
-  const [failed, setFailed] = useState([])
-  useEffect(() => setFailed([]), [signature])
+  const rootRef = useRef(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [outgoingIndex, setOutgoingIndex] = useState(null)
+  const [inView, setInView] = useState(false)
+  const [pageVisible, setPageVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion)
+  const [failedSlides, setFailedSlides] = useState([])
+  const slides = useMemo(() => projectPreviewSlides(project), [project])
+  const signature = slides.map((slide) => slide.key).join('\u001f')
 
-  const visibleSources = sources
-    .map((url, index) => ({ url, index }))
-    .filter(({ index }) => !failed.includes(index))
+  useEffect(() => {
+    setActiveIndex(0)
+    setOutgoingIndex(null)
+    setFailedSlides([])
+  }, [signature])
 
-  if (!visibleSources.length) {
+  useEffect(() => {
+    const node = rootRef.current
+    if (!node || !('IntersectionObserver' in window)) return undefined
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting)
+    }, { threshold: 0.15 })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const updateVisibility = () => setPageVisible(!document.hidden)
+    document.addEventListener('visibilitychange', updateVisibility)
+    return () => document.removeEventListener('visibilitychange', updateVisibility)
+  }, [])
+
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const updateMotionPreference = () => setReducedMotion(query.matches)
+    if (query.addEventListener) query.addEventListener('change', updateMotionPreference)
+    else query.addListener?.(updateMotionPreference)
+    return () => {
+      if (query.removeEventListener) query.removeEventListener('change', updateMotionPreference)
+      else query.removeListener?.(updateMotionPreference)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!inView || !pageVisible || reducedMotion) setOutgoingIndex(null)
+  }, [inView, pageVisible, reducedMotion])
+
+  useEffect(() => {
+    if (slides.length < 2 || !inView || !pageVisible || reducedMotion) return undefined
+
+    let fadeTimer
+    const interval = window.setInterval(() => {
+      setActiveIndex((currentIndex) => {
+        const nextIndex = (currentIndex + 1) % slides.length
+        setOutgoingIndex(currentIndex)
+        window.clearTimeout(fadeTimer)
+        fadeTimer = window.setTimeout(() => setOutgoingIndex(null), FADE_DURATION_MS + 80)
+        return nextIndex
+      })
+    }, SLIDE_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(interval)
+      window.clearTimeout(fadeTimer)
+    }
+  }, [inView, pageVisible, reducedMotion, signature, slides.length])
+
+  if (!slides.length) {
     return <span className="project-thumbnail-empty" aria-hidden="true">Project preview coming soon</span>
   }
 
+  const currentIndex = activeIndex % slides.length
+  const shouldRunVideo = inView && pageVisible && !reducedMotion
+  const visibleIndices = new Set([currentIndex, outgoingIndex].filter((index) => index !== null))
+
   return (
-    <span className={`project-thumbnail-mosaic project-thumbnail-mosaic-${visibleSources.length}`} aria-hidden="true">
-      {visibleSources.map(({ url, index }) => (
-        <span className="project-thumbnail-tile" key={url}>
-          <img
-            src={url}
-            alt=""
-            loading="lazy"
-            onError={() => setFailed((current) => current.includes(index) ? current : [...current, index])}
-          />
-        </span>
-      ))}
+    <span ref={rootRef} className={`project-thumbnail-mosaic project-thumbnail-mosaic-${slides.length}`} aria-hidden="true">
+      {slides.map((slide, index) => {
+        if (!visibleIndices.has(index)) return null
+        const isCurrent = index === currentIndex
+        const isFailed = failedSlides.includes(slide.key)
+        const slideClass = [
+          'project-thumbnail-slide',
+          isCurrent ? 'is-current' : 'is-outgoing',
+          slide.type === 'video' ? 'is-video' : 'is-image',
+        ].join(' ')
+
+        return (
+          <span className={slideClass} key={slide.key}>
+            {isFailed ? (
+              <span className="project-thumbnail-empty">Preview unavailable</span>
+            ) : slide.type === 'video' ? (
+              <>
+                <img className="project-thumbnail-video-poster" src={slide.poster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
+                {shouldRunVideo && <iframe src={slide.src} title={`${slide.label} autoplay preview`} allow="autoplay; fullscreen" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" tabIndex={-1} />}
+                <span className="project-thumbnail-video-badge"><Play size={12} fill="currentColor" aria-hidden="true" /><span>Video</span></span>
+              </>
+            ) : (
+              <img
+                src={slide.src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
+                onError={() => setFailedSlides((current) => current.includes(slide.key) ? current : [...current, slide.key])}
+              />
+            )}
+          </span>
+        )
+      })}
+      {slides.length > 1 && <span className="project-thumbnail-count">{currentIndex + 1} / {slides.length}</span>}
     </span>
   )
 }

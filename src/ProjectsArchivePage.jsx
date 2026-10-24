@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ArrowDown, ArrowUpRight } from 'lucide-react'
-import ProjectThumbnail, { normalizeProjectImageUrl, projectImageSources } from './ProjectThumbnail.jsx'
+import ProjectThumbnail, { normalizeProjectImageUrl, projectPreviewSlides } from './ProjectThumbnail.jsx'
 
 const PAGE_SIZE = 24
 
@@ -102,7 +102,7 @@ export default function ProjectsArchivePage() {
           <div className="archive-grid all-projects-grid">
             {projects.map((project) => {
               const media = projectMedia(project)
-              const hasThumbnail = projectImageSources(project, 3).length > 0
+              const hasThumbnail = projectPreviewSlides(project).length > 0
               return <article className="archive-card" key={project.id}>
                 {hasThumbnail ? <div className="archive-card-thumbnail"><ProjectThumbnail project={project} /></div> : <div className="archive-placeholder"><strong>{String(project.year)}</strong><span>Project file</span></div>}
                 <div>
