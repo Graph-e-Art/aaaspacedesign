@@ -82,7 +82,7 @@ Project content does **not** create Git commits. This is intentional: project re
 
 `/admin/?tab=messages` opens **User Messages**. ` /admin/?tab=projects` opens **Projects Submit**.
 
-Project form includes an optional **Thumbnail / cover image URL**. Upload the image in cPanel File Manager under `public_html/assets/project-thumbnails/`, then paste its full public URL. Add gallery media in the media rows; select `Image` or `Google Drive Video`, paste the URL, then click **+ Add image or Google Drive video** as needed. The database stores Drive video rows as `media_type='drive'` in `project_media`.
+Use the **Project media** rows for images and Google Drive videos; select `Image` or `Google Drive Video`, paste the URL, and add rows as needed. An image preview appears beside its URL, while a Drive video row embeds a small muted autoplay preview with the Drive player/poster available if autoplay is blocked. Drive files must be shared as **Anyone with the link · Viewer**. There are no separate fallback-cover or legacy-video URL fields. When editing older projects, unique legacy `image_url` and `embed_url` values are carried into the media rows; saves continue deriving those database columns from the first matching media item for compatibility.
 
 The Projects Submit dashboard lists every project entry, not only featured projects. Each row shows a cover thumbnail when available; projects without an image show a placeholder. The homepage Portfolio displays the five projects assigned to Portfolio 1–5 plus a sixth **See More Projects** tile linking to `/projects.html`, the full published archive with date filters and pagination.
 
