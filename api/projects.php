@@ -11,6 +11,7 @@ try {
     $clientId = filter_input(INPUT_GET, 'client_id', FILTER_VALIDATE_INT);
     $featuredOnly = (($_GET['featured'] ?? '') === '1');
     $limit = min(max((int)($_GET['limit'] ?? 100), 1), 100);
+    $offset = min(max((int)($_GET['offset'] ?? 0), 0), 1000000);
     $where = ["p.status = 'Published'"];
     $params = [];
     if ($year) { $where[] = 'p.year = :year'; $params[':year'] = $year; }
@@ -18,7 +19,10 @@ try {
     if ($clientId) { $where[] = 'p.client_id = :client_id'; $params[':client_id'] = $clientId; }
     if ($featuredOnly) { $where[] = 'p.featured_order BETWEEN 1 AND 5'; }
     $orderBy = $featuredOnly ? 'p.featured_order ASC' : 'p.year DESC, p.month DESC, p.id DESC';
-    $sql = 'SELECT p.id, p.client_id, c.name AS client_name, p.title, p.year, p.month, p.description, p.image_url, p.embed_url, p.featured_order, p.created_at FROM projects p LEFT JOIN clients c ON c.id = p.client_id WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderBy . ' LIMIT ' . $limit;
+    $countStatement = $pdo->prepare('SELECT COUNT(*) FROM projects p WHERE ' . implode(' AND ', $where));
+    $countStatement->execute($params);
+    $total = (int)$countStatement->fetchColumn();
+    $sql = 'SELECT p.id, p.client_id, c.name AS client_name, p.title, p.year, p.month, p.description, p.image_url, p.embed_url, p.featured_order, p.created_at FROM projects p LEFT JOIN clients c ON c.id = p.client_id WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderBy . ' LIMIT ' . $limit . ' OFFSET ' . $offset;
     $statement = $pdo->prepare($sql);
     $statement->execute($params);
     $projects = $statement->fetchAll();
@@ -47,7 +51,7 @@ try {
     }
     $years = $pdo->query("SELECT DISTINCT year FROM projects WHERE status = 'Published' ORDER BY year DESC")->fetchAll(PDO::FETCH_COLUMN);
     $months = $pdo->query("SELECT DISTINCT month FROM projects WHERE status = 'Published' ORDER BY month ASC")->fetchAll(PDO::FETCH_COLUMN);
-    echo json_encode(['ok' => true, 'projects' => $projects, 'years' => array_map('intval', $years), 'months' => array_map('intval', $months)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => true, 'projects' => $projects, 'total' => $total, 'years' => array_map('intval', $years), 'months' => array_map('intval', $months)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Throwable $error) {
     error_log('Project feed failed: ' . $error->getMessage());
     http_response_code(503);

@@ -9,7 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
-    "build": "vite build && cp assets/aa-space-design-logo.svg dist/assets/aa-space-design-logo.svg && rm -rf dist/src && node scripts/build-index-2.mjs && cp index.html dist/index.html && cp assets/index-2.js dist/assets/index-2.js && cp assets/index-2.css dist/assets/index-2.css && cp -R dist/assets/. ./assets/",
+    "build": "vite build && cp assets/aa-space-design-logo.svg dist/assets/aa-space-design-logo.svg && rm -rf dist/src && rm -f dist/assets/index.source-*.js dist/assets/index-[A-Za-z]*.css && node scripts/build-index-2.mjs && cp index.html dist/index.html && cp projects.html dist/projects.html && cp assets/index-2.js dist/assets/index-2.js && cp assets/index-2.css dist/assets/index-2.css",
     "build:index-2": "node scripts/build-index-2.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 3000"
   },

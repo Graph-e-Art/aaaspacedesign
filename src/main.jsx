@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowDown, ArrowUpRight, Check, ChevronDown, Expand, HardHat, LayoutGrid, Mail, MapPin, Menu, MessageCircle, PenTool, Phone, Play, X } from 'lucide-react'
 import ServiceSection from './ServiceSection.jsx'
+import ProjectsArchivePage from './ProjectsArchivePage.jsx'
 import './styles.css'
 
 const A='/assets/'
@@ -84,7 +85,7 @@ function App(){
   const openContact=()=>{setPreferredCallDefaults(getLocalCallDefaults());setContactOpen(true);setMenuOpen(false)}
   const closeContact=()=>setContactOpen(false)
   const driveEmbed=(url)=>url.includes('/file/d/')?url.replace(/\/view(?:\?.*)?$/,'/preview'):url
-  const mediaFor=(project)=>project.media?.length?project.media:[...(project.image_url?[{type:'image',url:project.image_url,label:null}]:[]),...(project.embed_url?[{type:'drive',url:project.embed_url,label:null}]:[])]
+  const mediaFor=(project)=>{const media=Array.isArray(project.media)?project.media:[];const cover=project.image_url&&!media.some(item=>item.type==='image'&&item.url===project.image_url)?[{type:'image',url:project.image_url,label:'Project cover'}]:[];return [...cover,...(media.length?media:[...(project.embed_url?[{type:'drive',url:project.embed_url,label:null}]:[])])]}
   const imageFor=(project)=>mediaFor(project).find(media=>media.type==='image')?.url || ''
   const fetchProjects=async (year='',month='',limit=100,clientId='',featuredOnly=false)=>{
     const query=new URLSearchParams({limit:String(limit)}); if(year) query.set('year',year); if(month) query.set('month',month); if(clientId) query.set('client_id',String(clientId)); if(featuredOnly) query.set('featured','1')
@@ -96,8 +97,8 @@ function App(){
   const filterArchive=async(year,month)=>{ setArchiveYear(year); setArchiveMonth(month); setArchiveLoading(true); try{ const result=await fetchProjects(year,month); setArchiveProjects(result.projects||[]) }catch(error){ setArchiveError(error.message||'Project archive unavailable.') }finally{ setArchiveLoading(false) } }
   useEffect(()=>{ const onKey=(event)=>{ if(event.key==='Escape'){ closeVideoGallery(); closeProject(); closeArchive(); closeClientProjects(); closeDynamicProject(); closeContact() } }; window.addEventListener('keydown',onKey); return()=>window.removeEventListener('keydown',onKey) },[])
   useEffect(()=>{ const onScroll=()=>setScrolled(window.scrollY>12); onScroll(); window.addEventListener('scroll',onScroll,{passive:true}); return()=>window.removeEventListener('scroll',onScroll) },[])
-  useEffect(()=>{ fetchProjects('', '', 5, '', true).then(result=>setCurrentProjects(result.projects||[])).catch(()=>setCurrentProjects([])); fetch('/api/clients.php').then(response=>response.json()).then(result=>{if(result.ok&&Array.isArray(result.clients))setClients(result.clients)}).catch(()=>{}) },[])
-  useEffect(()=>{ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; const timer=window.setInterval(()=>setHeroSlide(slide=>(slide+1)%3),6500); return()=>window.clearInterval(timer) },[])
+  useEffect(()=>{if(window.location.pathname==='/projects.html')return;fetchProjects('', '', 5, '', true).then(result=>setCurrentProjects(result.projects||[])).catch(()=>setCurrentProjects([]));fetch('/api/clients.php').then(response=>response.json()).then(result=>{if(result.ok&&Array.isArray(result.clients))setClients(result.clients)}).catch(()=>{}) },[])
+  useEffect(()=>{ if(window.location.pathname==='/projects.html'||window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; const timer=window.setInterval(()=>setHeroSlide(slide=>(slide+1)%3),6500); return()=>window.clearInterval(timer) },[])
   const featuredProjects=currentProjects.filter(project=>project.featured_order!=null).sort((a,b)=>a.featured_order-b.featured_order).slice(0,5)
   const clientRows=[clients.slice(0,8),clients.slice(8,16),clients.slice(16)]
   const heroSlides=[{number:'01',title:'Custom sofas, made for your space.',description:'From first sketch to final stitch, we make sofas and furniture that belong in the room.',image:'drive-gallery/selected/carpentry-detail.jpg',alt:'Crafted seating and joinery detail'},{number:'02',title:'Furniture that completes the interior.',description:'A coordinated approach to sofas, woodwork, partitions and the details around them.',image:'drive-gallery/selected/commercial-interior.jpg',alt:'Commercial interior with furniture work'},{number:'03',title:'Interior work with a furniture-first eye.',description:'Thoughtful planning, reliable execution and custom pieces for homes, offices and commercial spaces.',image:'drive-gallery/selected/turnkey-01.jpg',alt:'Turnkey interior project'}]
@@ -175,6 +176,7 @@ function App(){
     };
   }, []);
 
+  if(window.location.pathname==='/projects.html') return <ProjectsArchivePage/>
   return <div className="site">
     <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}><div className="header-main"><div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Associate home"><span className="brand-palette" aria-hidden="true" /><img src={A+'aa-associate-logo-new-j.png'} alt="AA Associate logo" /></a></div><nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation"><button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Service</button><button onClick={()=>scrollTo('projects')}>Projects</button><button onClick={()=>scrollTo('about')}>About</button><button onClick={()=>openContact()}>Contact</button></nav><div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={19}/></a><button className="header-quote" onClick={()=>openContact()}>Get a Quote <ArrowUpRight size={15}/></button></div><button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button></div></header>
     <main id="top" className="preview-homepage">
@@ -207,7 +209,7 @@ function App(){
             <p>Five featured projects selected from the AA Dashboard. Open a project to view its images and video.</p>
             <button className="text-link" onClick={() => openContact()}>Discuss your space <ArrowUpRight size={16}/></button>
           </div>
-          {featuredProjects.length ? <div className="gallery-grid preview-gallery portfolio-gallery">
+          <div className="gallery-grid preview-gallery portfolio-gallery">
             {featuredProjects.map((project, index) => (
               <article className="gallery-card" key={project.id}>
                 <button type="button" className="gallery-image" onClick={() => openDynamicProject(project)} aria-label={`View ${project.title} project`}>
@@ -218,8 +220,10 @@ function App(){
                 {project.client_name && <p className="portfolio-client-name">{project.client_name}</p>}
               </article>
             ))}
-          </div> : <p className="portfolio-empty" role="status">Featured projects will appear here after selection in AA Dashboard.</p>}
-          <div className="gallery-footer"><p>Browse every published project in the archive.</p><button className="button dark" onClick={openArchive}>See all projects <ArrowUpRight size={17}/></button></div>
+            <a className="gallery-card more-projects-card" href="/projects.html" aria-label="See more projects in the full portfolio"><span className="more-projects-index">AA / PROJECT ARCHIVE</span><strong>See More<br/>Projects</strong><span className="more-projects-copy">Browse all published project work.</span><span className="more-projects-arrow" aria-hidden="true"><ArrowUpRight size={20}/></span></a>
+          </div>
+          {!featuredProjects.length && <p className="portfolio-empty" role="status">Featured projects will appear here after selection in AA Dashboard.</p>}
+          <div className="gallery-footer"><p>Browse every published project in the archive.</p><button className="button dark" onClick={openContact}>Start a project <ArrowUpRight size={17}/></button></div>
         </div>
       </section>
       <section className="client-marquee-section" aria-label="Selected clients"><div className="client-marquee-heading"><span className="eyebrow">Selected clients</span><span>Select a client to browse its project work</span></div><div className="client-rows">{clientRows.map((row,rowIndex)=><div className={`client-row client-row-${rowIndex+1}`} key={rowIndex}><div className="client-row-track">{[...row,...row].map((client,index)=><button type="button" className="client-tag" key={`${client.id||client.slug}-${index}`} onClick={()=>openClientProjects(client)} aria-label={`View projects for ${client.name}`} aria-hidden={index>=row.length} tabIndex={index>=row.length?-1:0}><span>{client.name}</span></button>)}</div></div>)}</div></section>

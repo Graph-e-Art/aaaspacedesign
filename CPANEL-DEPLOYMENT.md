@@ -17,9 +17,9 @@ The repository contains a Vite React source project. cPanel was serving the sour
 7. Confirm the deployment log contains successful `npm install`, `npm run build`, and copy steps.
 8. Clear browser cache and test the domain in a private window.
 
-The approved client page is now `index.html`. The previous homepage is preserved as `index-3.html`. The deployment hook copies `dist/.`, the `index-3.html` backup, and root `assets/` into the selected document root, so cPanel does not need Node.js or npm for deployment. The root `index.html` and `assets/` fallback also allow the site to work when cPanel points the domain directly at the Git checkout.
+The approved client page is now `index.html`. The previous homepage is preserved as `index-3.html`. The deployment hook copies `dist/.` (including `projects.html`), the `index-3.html` backup, and root `assets/` into the selected document root, so cPanel does not need Node.js or npm for deployment. The root `index.html` and `assets/` fallback also allow the site to work when cPanel points the domain directly at the Git checkout.
 
-When the shared React source changes, run `pnpm build`. It refreshes the approved homepage bundle and cache key, then writes the current `index.html` and assets into `dist/` without replacing the source page. Commit the generated outputs, push them, then deploy that commit from cPanel.
+When the shared React source changes, run `pnpm build`. It refreshes the homepage and `projects.html` archive bundle references, then writes both pages and their assets into `dist/` without replacing the source pages. Commit the generated outputs, push them, then deploy that commit from cPanel.
 
 ## If domain still shows blank page
 
@@ -82,9 +82,9 @@ Project content does **not** create Git commits. This is intentional: project re
 
 `/admin/?tab=messages` opens **User Messages**. ` /admin/?tab=projects` opens **Projects Submit**.
 
-Project form supports multiple media rows. Select `Image` or `Google Drive Video`, paste URL, then click **+ Add image or Google Drive video** for each additional image or video. The database stores Drive video rows as `media_type='drive'` in `project_media`.
+Project form includes an optional **Thumbnail / cover image URL**. Upload the image in cPanel File Manager under `public_html/assets/project-thumbnails/`, then paste its full public URL. Add gallery media in the media rows; select `Image` or `Google Drive Video`, paste the URL, then click **+ Add image or Google Drive video** as needed. The database stores Drive video rows as `media_type='drive'` in `project_media`.
 
-The Projects Submit dashboard lists every project entry, not only featured projects. Each row shows a cover thumbnail when available; projects without an image show a placeholder. The homepage Portfolio displays the five projects assigned to Portfolio 1–5. **See all projects** opens the full published archive.
+The Projects Submit dashboard lists every project entry, not only featured projects. Each row shows a cover thumbnail when available; projects without an image show a placeholder. The homepage Portfolio displays the five projects assigned to Portfolio 1–5 plus a sixth **See More Projects** tile linking to `/projects.html`, the full published archive with date filters and pagination.
 
 ## Client tags and client project galleries
 

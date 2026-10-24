@@ -32,19 +32,21 @@ try {
   await copyFile(jsPath, path.join(targetAssetsDir, 'index-2.js'))
   await copyFile(cssPath, path.join(targetAssetsDir, 'index-2.css'))
 
-  const htmlPath = path.join(root, 'index.html')
-  const html = await readFile(htmlPath, 'utf8')
-  const nextJsTag = `src="/assets/index-2.js?v=${cacheKey}"`
-  const nextCssTag = `href="/assets/index-2.css?v=${cacheKey}"`
-  const updatedHtml = html
-    .replace(/src="\/assets\/index-2\.js(?:\?v=[^"]*)?"/, nextJsTag)
-    .replace(/href="\/assets\/index-2\.css(?:\?v=[^"]*)?"/, nextCssTag)
-  if (!updatedHtml.includes(nextJsTag) || !updatedHtml.includes(nextCssTag)) {
-    throw new Error('Could not update both homepage bundle references in index.html.')
+  for (const htmlName of ['index.html', 'projects.html']) {
+    const htmlPath = path.join(root, htmlName)
+    const html = await readFile(htmlPath, 'utf8')
+    const nextJsTag = `src="/assets/index-2.js?v=${cacheKey}"`
+    const nextCssTag = `href="/assets/index-2.css?v=${cacheKey}"`
+    const updatedHtml = html
+      .replace(/src="\/assets\/index-2\.js(?:\?v=[^"]*)?"/, nextJsTag)
+      .replace(/href="\/assets\/index-2\.css(?:\?v=[^"]*)?"/, nextCssTag)
+    if (!updatedHtml.includes(nextJsTag) || !updatedHtml.includes(nextCssTag)) {
+      throw new Error(`Could not update both bundle references in ${htmlName}.`)
+    }
+    await writeFile(htmlPath, updatedHtml)
   }
-  await writeFile(htmlPath, updatedHtml)
 
-  console.log(`Updated homepage bundles (cache key ${cacheKey}).`)
+  console.log(`Updated homepage and projects archive bundles (cache key ${cacheKey}).`)
   console.log(`JS: ${jsBytes.length} bytes; CSS: ${cssBytes.length} bytes.`)
 } finally {
   await rm(outputDir, { recursive: true, force: true })
