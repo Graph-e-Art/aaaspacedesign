@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 $isAuthenticated = !empty($_SESSION['admin_authenticated']);
 if (!$isAuthenticated): ?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Login | AA Associate</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard login for AA Space Design project and enquiry management."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard Login | AA Space Design</title>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(390px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 8px;font-size:28px}p{color:#736c63;line-height:1.6}.field{display:grid;gap:8px;margin:18px 0;font-weight:700;font-size:13px}input{padding:13px;border:1px solid #d8cec5;font:inherit}button{width:100%;padding:14px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.error{color:#a21d1d;font-size:13px}</style></head><body><main class="card"><p>AA Associate</p><h1>Admin login</h1><p>View and manage customer enquiries.</p><?php if (!empty($loginError)): ?><p class="error"><?= htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?><form method="post"><input type="hidden" name="action" value="login"><label class="field">Username<input name="username" required autocomplete="username"></label><label class="field">Password<input name="password" type="password" required autocomplete="current-password"></label><button type="submit">Sign in</button></form></main></body></html>
 <?php exit; endif;
 
@@ -49,7 +49,7 @@ try {
 }
 if ($databaseError !== ''): ?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin configuration error | AA Associate</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard configuration check."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard | AA Space Design</title>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(560px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 12px;font-size:26px}p{color:#736c63;line-height:1.6}a{color:#665849;font-weight:700}</style></head><body><main class="card"><h1>Admin setup needs one check</h1><p><?= h($databaseError) ?></p><p>Confirm that <code>/home/aaspaced/cred/.env</code> contains <code>DB_HOST</code>, <code>DB_NAME</code>, <code>DB_USER</code>, and <code>DB_PASS</code>, then confirm the MySQL user has access to the database.</p><p><a href="/admin/">Return to login</a></p></main></body></html>
 <?php exit; endif;
 
@@ -62,6 +62,17 @@ if (empty($_SESSION['admin_csrf_token'])) {
     $_SESSION['admin_csrf_token'] = bin2hex(random_bytes(32));
 }
 $csrfToken = (string)$_SESSION['admin_csrf_token'];
+function find_featured_slot_conflict(PDO $pdo, int $featuredOrder, ?int $exceptProjectId = null): ?array {
+    $sql = 'SELECT id, title FROM projects WHERE featured_order = :featured_order';
+    $params = [':featured_order' => $featuredOrder];
+    if ($exceptProjectId !== null) { $sql .= ' AND id <> :except_id'; $params[':except_id'] = $exceptProjectId; }
+    $statement = $pdo->prepare($sql);
+    $statement->execute($params);
+    return $statement->fetch() ?: null;
+}
+function featured_slot_conflict_message(int $slot, array $project): string {
+    return 'Portfolio ' . $slot . ' is already assigned to “' . (string)$project['title'] . '”. Edit that project and set it to Not featured first.';
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create_client') {
     $clientName = trim((string)($_POST['client_name'] ?? ''));
     $clientSlug = trim((string)preg_replace('/[^a-z0-9]+/i', '-', strtolower($clientName)), '-');
@@ -85,10 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     $description = trim((string)($_POST['description'] ?? ''));
     $imageUrl = trim((string)($_POST['image_url'] ?? ''));
     $embedUrl = trim((string)($_POST['embed_url'] ?? ''));
+    $featuredOrderRaw = trim((string)($_POST['featured_order'] ?? ''));
+    $featuredOrder = $featuredOrderRaw === '' ? null : filter_var($featuredOrderRaw, FILTER_VALIDATE_INT);
     if (!hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
         $projectError = 'This form expired. Reload the page and try again.';
     } elseif (!$clientId || $title === '' || !$year || !$month || $month < 1 || $month > 12 || $description === '') {
         $projectError = 'Client, title, valid year, month, and description are required.';
+    } elseif ($featuredOrderRaw !== '' && ($featuredOrder === false || $featuredOrder < 1 || $featuredOrder > 5)) {
+        $projectError = 'Choose Not featured or a Portfolio 1–5 slot.';
     } elseif (($imageUrl !== '' && !filter_var($imageUrl, FILTER_VALIDATE_URL)) || ($embedUrl !== '' && !filter_var($embedUrl, FILTER_VALIDATE_URL))) {
         $projectError = 'Image and Google Drive links must be valid URLs.';
     } else {
@@ -97,7 +112,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
             $clientCheck->execute([':client_id' => $clientId]);
             if (!$clientCheck->fetch()) { throw new RuntimeException('Invalid client tag.'); }
             $pdo->beginTransaction();
-            $statement = $pdo->prepare('INSERT INTO projects (client_id, title, year, month, description, image_url, embed_url) VALUES (:client_id, :title, :year, :month, :description, :image_url, :embed_url)');
+            $portfolioConflict = $featuredOrder !== null ? find_featured_slot_conflict($pdo, (int)$featuredOrder) : null;
+            if ($portfolioConflict) {
+                $pdo->rollBack();
+                $projectError = featured_slot_conflict_message((int)$featuredOrder, $portfolioConflict);
+            } else {
+            $statement = $pdo->prepare('INSERT INTO projects (client_id, title, year, month, description, image_url, embed_url, featured_order) VALUES (:client_id, :title, :year, :month, :description, :image_url, :embed_url, :featured_order)');
             $mediaTypes = $_POST['media_type'] ?? [];
             $mediaUrls = $_POST['media_url'] ?? [];
             $mediaLabels = $_POST['media_label'] ?? [];
@@ -111,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 if ($mediaType === 'image' && $firstImage === '') { $firstImage = $mediaUrl; }
                 if ($mediaType === 'drive' && $firstDrive === '') { $firstDrive = $mediaUrl; }
             }
-            $statement->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null]);
+            $statement->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null, ':featured_order' => $featuredOrder]);
             $projectId = (int)$pdo->lastInsertId();
             $mediaStatement = $pdo->prepare('INSERT INTO project_media (project_id, media_type, url, label, sort_order) VALUES (:project_id, :media_type, :url, :label, :sort_order)');
             foreach ($mediaUrls as $index => $mediaUrl) {
@@ -123,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
             }
             $pdo->commit();
             $projectMessage = 'Project published successfully.';
+            }
         } catch (Throwable $error) {
             if ($pdo->inTransaction()) { $pdo->rollBack(); }
             error_log('Admin project insert failed: ' . $error->getMessage());
@@ -140,6 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $description = trim((string)($_POST['description'] ?? ''));
     $imageUrl = trim((string)($_POST['image_url'] ?? ''));
     $embedUrl = trim((string)($_POST['embed_url'] ?? ''));
+    $featuredOrderRaw = trim((string)($_POST['featured_order'] ?? ''));
+    $featuredOrder = $featuredOrderRaw === '' ? null : filter_var($featuredOrderRaw, FILTER_VALIDATE_INT);
     $status = (string)($_POST['status'] ?? 'Published');
     $mediaTypes = is_array($_POST['media_type'] ?? null) ? $_POST['media_type'] : [];
     $mediaUrls = is_array($_POST['media_url'] ?? null) ? $_POST['media_url'] : [];
@@ -151,6 +174,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         $projectError = 'Client, title, valid year, month, and description are required.';
     } elseif (!in_array($status, ['Published', 'Archived', 'Draft'], true)) {
         $projectError = 'Choose a valid project status.';
+    } elseif ($featuredOrderRaw !== '' && ($featuredOrder === false || $featuredOrder < 1 || $featuredOrder > 5)) {
+        $projectError = 'Choose Not featured or a Portfolio 1–5 slot.';
+    } elseif ($featuredOrder !== null && $status !== 'Published') {
+        $projectError = 'Only published projects can use a Portfolio slot.';
     } elseif (($imageUrl !== '' && (!filter_var($imageUrl, FILTER_VALIDATE_URL) || strlen($imageUrl) > 1000)) || ($embedUrl !== '' && (!filter_var($embedUrl, FILTER_VALIDATE_URL) || strlen($embedUrl) > 1000))) {
         $projectError = 'Image and Google Drive links must be valid URLs under 1,000 characters.';
     } else {
@@ -191,17 +218,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 }
 
                 $pdo->beginTransaction();
-                $update = $pdo->prepare('UPDATE projects SET client_id = :client_id, title = :title, year = :year, month = :month, description = :description, image_url = :image_url, embed_url = :embed_url, status = :status WHERE id = :id');
-                $update->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null, ':status' => $status, ':id' => $projectId]);
-                $deleteMedia = $pdo->prepare('DELETE FROM project_media WHERE project_id = :project_id');
-                $deleteMedia->execute([':project_id' => $projectId]);
-                $insertMedia = $pdo->prepare('INSERT INTO project_media (project_id, media_type, url, label, sort_order) VALUES (:project_id, :media_type, :url, :label, :sort_order)');
-                foreach ($mediaItems as $index => $media) {
-                    $insertMedia->execute([':project_id' => $projectId, ':media_type' => $media['type'], ':url' => $media['url'], ':label' => $media['label'], ':sort_order' => $index]);
+                $portfolioConflict = $featuredOrder !== null ? find_featured_slot_conflict($pdo, (int)$featuredOrder, (int)$projectId) : null;
+                if ($portfolioConflict) {
+                    $pdo->rollBack();
+                    $projectError = featured_slot_conflict_message((int)$featuredOrder, $portfolioConflict);
+                } else {
+                    $update = $pdo->prepare('UPDATE projects SET client_id = :client_id, title = :title, year = :year, month = :month, description = :description, image_url = :image_url, embed_url = :embed_url, status = :status, featured_order = :featured_order WHERE id = :id');
+                    $update->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null, ':status' => $status, ':featured_order' => $featuredOrder, ':id' => $projectId]);
+                    $deleteMedia = $pdo->prepare('DELETE FROM project_media WHERE project_id = :project_id');
+                    $deleteMedia->execute([':project_id' => $projectId]);
+                    $insertMedia = $pdo->prepare('INSERT INTO project_media (project_id, media_type, url, label, sort_order) VALUES (:project_id, :media_type, :url, :label, :sort_order)');
+                    foreach ($mediaItems as $index => $media) {
+                        $insertMedia->execute([':project_id' => $projectId, ':media_type' => $media['type'], ':url' => $media['url'], ':label' => $media['label'], ':sort_order' => $index]);
+                    }
+                    $pdo->commit();
+                    header('Location: /admin/?tab=projects&project_saved=updated');
+                    exit;
                 }
-                $pdo->commit();
-                header('Location: /admin/?tab=projects&project_saved=updated');
-                exit;
             } catch (Throwable $error) {
                 if ($pdo->inTransaction()) { $pdo->rollBack(); }
                 error_log('Admin project update failed: ' . $error->getMessage());
@@ -219,7 +252,7 @@ try {
 }
 $projectRows = [];
 try {
-    $projectRows = $pdo->query('SELECT p.*, c.name AS client_name FROM projects p LEFT JOIN clients c ON c.id = p.client_id ORDER BY p.year DESC, p.month DESC, p.id DESC')->fetchAll();
+    $projectRows = $pdo->query("SELECT p.*, c.name AS client_name, COALESCE(NULLIF(p.image_url, ''), (SELECT pm.url FROM project_media pm WHERE pm.project_id = p.id AND pm.media_type = 'image' ORDER BY pm.sort_order ASC, pm.id ASC LIMIT 1)) AS thumbnail_url FROM projects p LEFT JOIN clients c ON c.id = p.client_id ORDER BY p.year DESC, p.month DESC, p.id DESC")->fetchAll();
 } catch (Throwable $error) {
     error_log('Admin project query failed: ' . $error->getMessage());
 }
@@ -258,6 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         'image_url' => (string)($_POST['image_url'] ?? ''),
         'embed_url' => (string)($_POST['embed_url'] ?? ''),
         'status' => (string)($_POST['status'] ?? 'Published'),
+        'featured_order' => (string)($_POST['featured_order'] ?? ''),
     ]);
     $editingMediaRows = [];
     foreach ((is_array($_POST['media_url'] ?? null) ? $_POST['media_url'] : []) as $index => $mediaUrl) {
@@ -288,7 +322,7 @@ try {
 }
 if ($databaseError !== ''): ?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin table error | AA Associate</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard database setup check."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard | AA Space Design</title>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(560px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 12px;font-size:26px}p{color:#736c63;line-height:1.6}a{color:#665849;font-weight:700}</style></head><body><main class="card"><h1>Admin table needs one check</h1><p><?= htmlspecialchars($databaseError, ENT_QUOTES, 'UTF-8') ?></p><p>In phpMyAdmin, confirm that table <code>contact_enquiries</code> includes <code>email</code>, <code>preferred_call_date</code>, <code>preferred_call_time</code>, <code>admin_notes</code>, <code>status</code>, and <code>created_at</code>.</p><p><a href="/admin/?logout=1">Return to login</a></p></main></body></html>
 <?php exit; endif;
 function h(string $value): string { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
@@ -299,9 +333,9 @@ function whatsapp_url(string $phone, string $name): string {
 }
 ?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Enquiries | AA Associate</title>
-<style>body{margin:0;background:#f5f2eb;color:#3d3a35;font:14px Arial,sans-serif}.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}h1{margin:0;font-size:30px}.muted{color:#736c63}.logout{color:#665849;text-decoration:none;font-weight:700}.list{display:grid;gap:18px}.item{background:#fff;border:1px solid #e6dfd3;padding:22px;box-shadow:0 10px 28px #3d3a350b}.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0;color:#736c63;font-size:13px}.meta strong{color:#3d3a35}.message{white-space:pre-wrap;line-height:1.6;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:7px;color:#665849;font-weight:700;font-size:12px}.field input,.field select,.field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}.field textarea{min-height:80px;resize:vertical}.actions{display:flex;align-items:end;gap:10px;margin-top:14px}.actions button{padding:11px 16px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.whatsapp{display:inline-block;padding:11px 16px;background:#665849;color:#fff;text-decoration:none;font-weight:700}.empty{background:#fff;padding:32px;border:1px solid #e6dfd3}.dashboard-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid #e6dfd3}.dashboard-tabs a{padding:12px 16px;color:#736c63;text-decoration:none;font-weight:700;border-bottom:3px solid transparent}.dashboard-tabs a.active{color:#3d3a35;border-color:#665849}.media-builder{display:grid;gap:12px;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.media-builder-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.add-media,.remove-media{padding:9px 12px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;cursor:pointer}.media-rows{display:grid;gap:8px}.media-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:8px;align-items:center}.media-row input,.media-row select{min-width:0;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}@media(max-width:650px){.media-row{grid-template-columns:1fr}.media-row .remove-media{width:max-content}}.client-tag-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:18px 0;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.client-tag-form button{padding:11px 16px;border:0;background:#665849;color:#fff;font-weight:700;cursor:pointer}.project-manager,.project-list{background:#fff;border:1px solid #e6dfd3;padding:24px;margin-bottom:18px}.project-manager h2,.project-list h2{margin:0 0 8px;font-size:22px}.project-form{display:grid;gap:14px;margin-top:22px}.project-form button{padding:12px 18px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.success-message{color:#2f6b45;font-weight:700}.project-list-items{display:grid;gap:12px}.project-list-items article{padding:15px 0;border-top:1px solid #e6dfd3}.project-list-items article div{display:flex;justify-content:space-between;gap:18px}.project-list-items article span{color:#736c63;font-size:12px}.project-list-items article p{margin:8px 0 0;color:#736c63;line-height:1.5;font-size:13px}@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.client-tag-form{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.actions{align-items:stretch;flex-direction:column}.actions button,.whatsapp{width:100%;box-sizing:border-box;text-align:center}}.project-list-items article .project-row-head{align-items:center}.edit-project{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;text-decoration:none;white-space:nowrap}.edit-project:hover,.edit-project:focus-visible{border-color:#665849;background:#f8f5f0}.project-form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.project-form .edit-cancel{display:inline-flex;align-items:center;min-height:42px;color:#665849;font-weight:700;text-decoration:underline;text-underline-offset:3px}@media(max-width:650px){.project-list-items article .project-row-head{align-items:flex-start;flex-direction:column}.project-form-actions{align-items:stretch}.project-form-actions>*{text-align:center}}</style></head>
-<body><main class="wrap"><header class="top"><div><p class="muted">AA Associate</p><h1>Customer enquiries</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard for managing AA Space Design enquiries and project portfolio entries."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard | AA Space Design</title>
+<style>body{margin:0;background:#f5f2eb;color:#3d3a35;font:14px Arial,sans-serif}.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}h1{margin:0;font-size:30px}.muted{color:#736c63}.logout{color:#665849;text-decoration:none;font-weight:700}.list{display:grid;gap:18px}.item{background:#fff;border:1px solid #e6dfd3;padding:22px;box-shadow:0 10px 28px #3d3a350b}.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0;color:#736c63;font-size:13px}.meta strong{color:#3d3a35}.message{white-space:pre-wrap;line-height:1.6;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:7px;color:#665849;font-weight:700;font-size:12px}.field input,.field select,.field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}.field textarea{min-height:80px;resize:vertical}.actions{display:flex;align-items:end;gap:10px;margin-top:14px}.actions button{padding:11px 16px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.whatsapp{display:inline-block;padding:11px 16px;background:#665849;color:#fff;text-decoration:none;font-weight:700}.empty{background:#fff;padding:32px;border:1px solid #e6dfd3}.dashboard-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid #e6dfd3}.dashboard-tabs a{padding:12px 16px;color:#736c63;text-decoration:none;font-weight:700;border-bottom:3px solid transparent}.dashboard-tabs a.active{color:#3d3a35;border-color:#665849}.media-builder{display:grid;gap:12px;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.media-builder-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.add-media,.remove-media{padding:9px 12px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;cursor:pointer}.media-rows{display:grid;gap:8px}.media-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:8px;align-items:center}.media-row input,.media-row select{min-width:0;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}@media(max-width:650px){.media-row{grid-template-columns:1fr}.media-row .remove-media{width:max-content}}.client-tag-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:18px 0;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.client-tag-form button{padding:11px 16px;border:0;background:#665849;color:#fff;font-weight:700;cursor:pointer}.project-manager,.project-list{background:#fff;border:1px solid #e6dfd3;padding:24px;margin-bottom:18px}.project-manager h2,.project-list h2{margin:0 0 8px;font-size:22px}.project-form{display:grid;gap:14px;margin-top:22px}.project-form button{padding:12px 18px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.success-message{color:#2f6b45;font-weight:700}.project-list-items{display:grid;gap:12px}.project-list-items article{padding:15px 0;border-top:1px solid #e6dfd3}.project-list-items article div{display:flex;justify-content:space-between;gap:18px}.project-list-items article span{color:#736c63;font-size:12px}.project-list-items article p{margin:8px 0 0;color:#736c63;line-height:1.5;font-size:13px}@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.client-tag-form{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.actions{align-items:stretch;flex-direction:column}.actions button,.whatsapp{width:100%;box-sizing:border-box;text-align:center}}.project-list-items article .project-row-head{align-items:center}.edit-project{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;text-decoration:none;white-space:nowrap}.edit-project:hover,.edit-project:focus-visible{border-color:#665849;background:#f8f5f0}.project-form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.project-form .edit-cancel{display:inline-flex;align-items:center;min-height:42px;color:#665849;font-weight:700;text-decoration:underline;text-underline-offset:3px}@media(max-width:650px){.project-list-items article .project-row-head{align-items:flex-start;flex-direction:column}.project-form-actions{align-items:stretch}.project-list-items article .project-row-head{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:14px}.project-list-thumb,.project-thumb-empty{width:72px;height:60px;object-fit:cover;border:1px solid #e6dfd3;background:#f1eee8}.project-list-items article .project-thumb-empty{display:grid;place-items:center;color:#736c63;font-size:10px}.project-list-items article .project-row-copy{display:grid;gap:6px;min-width:0}.project-list-items article .project-row-copy>span{color:#736c63;font-size:12px}.project-list-items article .project-row-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.project-list-items article .portfolio-slot-tag{padding:5px 8px;border:1px solid #e6dfd3;background:#f8f5f0;color:#665849;font-size:11px;font-weight:700;white-space:nowrap}.featured-position-field{padding:14px;background:#f8f5f0;border:1px solid #e6dfd3}.featured-position-field .muted{line-height:1.5}@media(max-width:650px){.project-list-items article .project-row-head{grid-template-columns:58px minmax(0,1fr);gap:10px}.project-list-thumb,.project-thumb-empty{width:58px;height:54px}.project-list-items article .project-row-head .edit-project{grid-column:2;justify-self:start}.project-list-items article .project-row-title{align-items:flex-start;flex-direction:column;gap:6px}}</style></head>
+<body><main class="wrap"><header class="top"><div><p class="muted">AA Space Design</p><h1>AA Dashboard</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
 <?php $isEditingProject = !empty($editingProject); ?>
 <section class="project-manager">
   <div>
@@ -346,8 +380,18 @@ function whatsapp_url(string $phone, string $name): string {
       </label>
     </div>
     <label class="field">Description<textarea name="description" required maxlength="2000" placeholder="Short project summary for the public archive"><?= h((string)($editingProject['description'] ?? '')) ?></textarea></label>
+    <?php $featuredOrderValue = $isEditingProject ? (string)($editingProject['featured_order'] ?? '') : (string)($_POST['featured_order'] ?? ''); ?>
+    <label class="field featured-position-field">Portfolio position
+      <select name="featured_order" aria-describedby="featured-position-help">
+        <option value="" <?= $featuredOrderValue === '' ? 'selected' : '' ?>>Not featured</option>
+        <?php for ($featuredSlot = 1; $featuredSlot <= 5; $featuredSlot++): ?>
+          <option value="<?= $featuredSlot ?>" <?= $featuredOrderValue === (string)$featuredSlot ? 'selected' : '' ?>>Portfolio <?= $featuredSlot ?></option>
+        <?php endfor; ?>
+      </select>
+      <span id="featured-position-help" class="muted">Choose one of five homepage slots. Each slot can hold one published project.</span>
+    </label>
     <label class="field">Image URL <span class="muted">Optional</span><input name="image_url" type="url" placeholder="https://..." value="<?= h((string)($editingProject['image_url'] ?? '')) ?>"></label>
-    <label class="field">Google Drive embed/media link <span class="muted">Optional legacy link</span><input name="embed_url" type="url" placeholder="https://drive.google.com/..." value="<?= h((string)($editingProject['embed_url'] ?? '')) ?>"></label>
+    <label class="field">Google Drive video embed link <span class="muted">Optional legacy link</span><input name="embed_url" type="url" placeholder="https://drive.google.com/..." value="<?= h((string)($editingProject['embed_url'] ?? '')) ?>"></label>
     <?php if ($isEditingProject): ?>
       <label class="field">Status
         <select name="status" required>
@@ -358,14 +402,14 @@ function whatsapp_url(string $phone, string $name): string {
       </label>
     <?php endif; ?>
     <div class="media-builder">
-      <div class="media-builder-head"><strong>Project media</strong><button type="button" class="add-media" onclick="addMediaRow()">+ Add image or Google Drive link</button></div>
+      <div class="media-builder-head"><strong>Project media</strong><button type="button" class="add-media" onclick="addMediaRow()">+ Add image or Google Drive video</button></div>
       <div id="media-rows">
         <?php $formMediaRows = $editingMediaRows ?: [['media_type' => 'image', 'url' => '', 'label' => '']]; ?>
         <?php foreach ($formMediaRows as $mediaRow): ?>
           <div class="media-row">
             <select name="media_type[]" aria-label="Media type">
               <option value="image" <?= ($mediaRow['media_type'] ?? 'image') === 'image' ? 'selected' : '' ?>>Image</option>
-              <option value="drive" <?= ($mediaRow['media_type'] ?? '') === 'drive' ? 'selected' : '' ?>>Google Drive</option>
+              <option value="drive" <?= ($mediaRow['media_type'] ?? '') === 'drive' ? 'selected' : '' ?>>Google Drive Video</option>
             </select>
             <input name="media_url[]" type="url" placeholder="https://..." <?= $isEditingProject ? '' : 'required' ?> aria-label="Media URL" value="<?= h((string)($mediaRow['url'] ?? '')) ?>">
             <input name="media_label[]" placeholder="Label (optional)" aria-label="Media label" value="<?= h((string)($mediaRow['label'] ?? '')) ?>">
@@ -389,8 +433,15 @@ function whatsapp_url(string $phone, string $name): string {
       <?php foreach ($projectRows as $project): ?>
         <article>
           <div class="project-row-head">
-            <strong><?= h((string)$project['title']) ?></strong>
-            <span><?= h((string)($project['client_name'] ?? 'Unassigned')) ?> · <?= h((string)$project['month']) ?>/<?= h((string)$project['year']) ?> · <?= h((string)$project['status']) ?></span>
+            <?php if (!empty($project['thumbnail_url'])): ?>
+              <img class="project-list-thumb" src="<?= h((string)$project['thumbnail_url']) ?>" alt="Cover image for <?= h((string)$project['title']) ?>" loading="lazy">
+            <?php else: ?>
+              <div class="project-thumb-empty" aria-hidden="true">No cover</div>
+            <?php endif; ?>
+            <div class="project-row-copy">
+              <div class="project-row-title"><strong><?= h((string)$project['title']) ?></strong><span class="portfolio-slot-tag"><?= !empty($project['featured_order']) ? 'Portfolio ' . (int)$project['featured_order'] : 'Not featured' ?></span></div>
+              <span><?= h((string)($project['client_name'] ?? 'Unassigned')) ?> · <?= h((string)$project['month']) ?>/<?= h((string)$project['year']) ?> · <?= h((string)$project['status']) ?></span>
+            </div>
             <a class="edit-project" href="?tab=projects&amp;edit_project=<?= (int)$project['id'] ?>" aria-label="Edit <?= h((string)$project['title']) ?>">Edit</a>
           </div>
           <p><?= h((string)$project['description']) ?></p>

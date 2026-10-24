@@ -34,10 +34,12 @@ CREATE TABLE IF NOT EXISTS projects (
     image_url VARCHAR(1000) DEFAULT NULL,
     embed_url VARCHAR(1000) DEFAULT NULL,
     status ENUM('Published', 'Archived', 'Draft') NOT NULL DEFAULT 'Published',
+    featured_order TINYINT UNSIGNED DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_projects_archive (status, year, month),
     INDEX idx_projects_client (client_id, status, year, month),
+    UNIQUE KEY uq_projects_featured_order (featured_order),
     CONSTRAINT fk_projects_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL,
     CONSTRAINT chk_projects_month CHECK (month BETWEEN 1 AND 12),
     CONSTRAINT chk_projects_year CHECK (year BETWEEN 2000 AND 2200)

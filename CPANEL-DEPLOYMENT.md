@@ -74,7 +74,7 @@ DB_USER=...
 DB_PASS=...
 ```
 
-Run the new `projects` table statement from `database/schema.sql` once in phpMyAdmin. The protected `/admin/` dashboard then provides the manager project form. New entries appear at `/api/projects.php` and in the homepage “Current Projects” section.
+For a fresh installation, create the project tables from `database/schema.sql`. For an existing installation, keep using the existing MySQL tables and run the migrations below.
 
 Project content does **not** create Git commits. This is intentional: project records belong in MySQL, while GitHub should track code, schema, and deployment changes. cPanel Git deployment copies `prj-deploy.php` with the public site files.
 
@@ -82,12 +82,18 @@ Project content does **not** create Git commits. This is intentional: project re
 
 `/admin/?tab=messages` opens **User Messages**. ` /admin/?tab=projects` opens **Projects Submit**.
 
-Project form supports multiple media rows. Select `Image` or `Google Drive`, paste URL, then click **+ Add image or Google Drive link** for each additional image or video. Database now uses `project_media` linked to `projects`.
+Project form supports multiple media rows. Select `Image` or `Google Drive Video`, paste URL, then click **+ Add image or Google Drive video** for each additional image or video. The database stores Drive video rows as `media_type='drive'` in `project_media`.
 
-Homepage loads all published projects but shows three cards at once. Additional cards remain available through the horizontal scroll bar. Each project card exposes its image and Google Drive links.
+The Projects Submit dashboard lists every project entry, not only featured projects. Each row shows a cover thumbnail when available; projects without an image show a placeholder. The homepage Portfolio displays the five projects assigned to Portfolio 1–5. **See all projects** opens the full published archive.
 
 ## Client tags and client project galleries
 
 Back up MySQL before deployment. For an existing site, run `database/migrations/20261023_client_tags.sql` once in phpMyAdmin. It creates client tags, seeds the approved roster, and adds nullable `projects.client_id`; existing project rows stay unassigned until edited. Do not run the migration twice because its `ALTER TABLE` step is one-time.
 
 The protected `/admin/?tab=projects` page lets an admin add client tags and choose one when entering each new project. The homepage client marquee loads names from `/api/clients.php`; selecting a client opens published projects, and selecting a project opens its existing media gallery. Fresh installations can use the updated `database/schema.sql` instead of the migration.
+
+## Featured portfolio slots
+
+Back up MySQL first. For an existing site, run `database/migrations/20261024_featured_projects.sql` once in phpMyAdmin after the projects, `project_media`, and client-tag migrations. It adds nullable `projects.featured_order`, enforces one project per slot, and assigns the five approved project records to Portfolio 1–5. Other entries stay unfeatured and remain visible in the dashboard and full archive. Do not run this `ALTER TABLE` migration twice.
+
+Apply the migration before deploying the code that reads `featured_order`. For fresh installs, the updated `database/schema.sql` includes the slot column and unique index; assign the five project records from the dashboard after entering them.
