@@ -946,3 +946,22 @@
 .dynamic-project-header .lightbox-close-button{position:relative;z-index:6;align-self:flex-start;flex:0 0 auto;margin-top:20px}
 @media(max-width:900px){.dynamic-project-lightbox{padding:140px 16px 16px}.dynamic-project-panel{max-height:calc(100dvh - 156px)}}
 @media(max-width:560px){.dynamic-project-lightbox{place-items:start center;padding:128px 10px 10px}.dynamic-project-panel{max-height:calc(100dvh - 140px);padding:16px}}
+
+
+/* Project thumbnail collage from first three public image links in each gallery. */
+.project-thumbnail-mosaic,.project-thumbnail-empty{position:absolute;inset:0;width:100%;height:100%}
+.project-thumbnail-mosaic{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:4px;background:#e8ded4}
+.project-thumbnail-mosaic-1{display:block}
+.project-thumbnail-mosaic-2{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:1fr}
+.project-thumbnail-tile{display:block;position:relative;min-width:0;min-height:0;overflow:hidden;background:#d9d0c7}
+.project-thumbnail-mosaic-1 .project-thumbnail-tile{position:absolute;inset:0}
+.project-thumbnail-mosaic-3 .project-thumbnail-tile:first-child{grid-column:1;grid-row:1 / span 2}
+.project-thumbnail-mosaic-3 .project-thumbnail-tile:nth-child(2){grid-column:2;grid-row:1}
+.project-thumbnail-mosaic-3 .project-thumbnail-tile:nth-child(3){grid-column:2;grid-row:2}
+.project-thumbnail-mosaic-2 .project-thumbnail-tile:first-child{grid-column:1;grid-row:1}
+.project-thumbnail-mosaic-2 .project-thumbnail-tile:nth-child(2){grid-column:2;grid-row:1}
+.project-thumbnail-tile img{display:block;width:100%;height:100%;object-fit:cover}
+.project-thumbnail-empty{display:grid;place-items:center;padding:20px;background:#e7dfd5;color:#68645e;text-align:center;font-size:13px}
+.archive-card-thumbnail{position:relative;width:100%;height:190px;overflow:hidden;background:#e8ded4}
+.all-projects-grid .archive-card-thumbnail{height:230px}
+@media(prefers-reduced-motion:reduce){.project-thumbnail-tile img{transition:none}}

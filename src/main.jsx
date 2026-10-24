@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { ArrowDown, ArrowUpRight, Check, ChevronDown, Expand, HardHat, LayoutGrid, Mail, MapPin, Menu, MessageCircle, PenTool, Phone, Play, X } from 'lucide-react'
 import ServiceSection from './ServiceSection.jsx'
 import ProjectsArchivePage from './ProjectsArchivePage.jsx'
+import ProjectThumbnail, { normalizeProjectImageUrl, projectImageSources } from './ProjectThumbnail.jsx'
 import './styles.css'
 
 const A='/assets/'
@@ -85,8 +86,8 @@ function App(){
   const openContact=()=>{setPreferredCallDefaults(getLocalCallDefaults());setContactOpen(true);setMenuOpen(false)}
   const closeContact=()=>setContactOpen(false)
   const driveEmbed=(url)=>url.includes('/file/d/')?url.replace(/\/view(?:\?.*)?$/,'/preview'):url
-  const mediaFor=(project)=>{const media=Array.isArray(project.media)?project.media:[];const cover=project.image_url&&!media.some(item=>item.type==='image'&&item.url===project.image_url)?[{type:'image',url:project.image_url,label:'Project cover'}]:[];return [...cover,...(media.length?media:[...(project.embed_url?[{type:'drive',url:project.embed_url,label:null}]:[])])]}
-  const imageFor=(project)=>mediaFor(project).find(media=>media.type==='image')?.url || ''
+  const mediaFor=(project)=>{const media=Array.isArray(project.media)?project.media:[];const cover=project.image_url&&!media.some(item=>item.type==='image'&&item.url===project.image_url)?[{type:'image',url:project.image_url,label:'Project cover'}]:[];return [...cover,...(media.length?media:[...(project.embed_url?[{type:'drive',url:project.embed_url,label:null}]:[])])].map(item=>item.type==='image'?{...item,url:normalizeProjectImageUrl(item.url)}:item)}
+  const imageFor=(project)=>projectImageSources(project,1)[0] || ''
   const fetchProjects=async (year='',month='',limit=100,clientId='',featuredOnly=false)=>{
     const query=new URLSearchParams({limit:String(limit)}); if(year) query.set('year',year); if(month) query.set('month',month); if(clientId) query.set('client_id',String(clientId)); if(featuredOnly) query.set('featured','1')
     const response=await fetch(`/api/projects.php?${query.toString()}`); const result=await response.json()
@@ -213,7 +214,7 @@ function App(){
             {featuredProjects.map((project, index) => (
               <article className="gallery-card" key={project.id}>
                 <button type="button" className="gallery-image" onClick={() => openDynamicProject(project)} aria-label={`View ${project.title} project`}>
-                  {imageFor(project) ? <img src={imageFor(project)} alt={`Project cover: ${project.title}`} loading="lazy"/> : <div className="gallery-placeholder">Project preview coming soon</div>}
+                  <ProjectThumbnail project={project} />
                   <span className="gallery-hover-label">View project <ArrowUpRight size={16}/></span>
                 </button>
                 <div className="gallery-card-meta"><span>{String(index + 1).padStart(2, '0')} / Featured portfolio</span><strong>{project.title}</strong></div>

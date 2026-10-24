@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ArrowDown, ArrowUpRight } from 'lucide-react'
+import ProjectThumbnail, { normalizeProjectImageUrl, projectImageSources } from './ProjectThumbnail.jsx'
 
 const PAGE_SIZE = 24
 
@@ -7,10 +8,11 @@ function projectMedia(project) {
   const media = Array.isArray(project.media) ? project.media : []
   const cover = project.image_url ? [{ type: 'image', url: project.image_url, label: 'Project cover' }] : []
   const withoutDuplicateCover = cover.filter((item) => !media.some((entry) => entry.type === 'image' && entry.url === item.url))
-  return [...withoutDuplicateCover, ...media]
+  return [...withoutDuplicateCover, ...media].map((item) => item.type === 'image' ? { ...item, url: normalizeProjectImageUrl(item.url) } : item)
 }
 
 function mediaHref(item) {
+  if (item.type === 'image') return normalizeProjectImageUrl(item.url)
   if (item.type !== 'drive') return item.url
   return item.url.includes('/file/d/') ? item.url.replace(/\/view(?:\?.*)?$/, '/preview') : item.url
 }
@@ -25,7 +27,6 @@ export default function ProjectsArchivePage() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState('')
-  const [failedThumbnails, setFailedThumbnails] = useState(() => new Set())
 
   useEffect(() => {
     const controller = new AbortController()
@@ -89,7 +90,7 @@ export default function ProjectsArchivePage() {
         <div className="all-projects-title-row">
           <div>
             <h1>Projects, in full.</h1>
-            <p>Filter published project work by date. Each card shows its cover image and available project media.</p>
+            <p>Filter published project work by date. Each card previews up to three gallery images and links to its project media.</p>
           </div>
           <span className="all-projects-count">{total} published project{total === 1 ? '' : 's'}</span>
         </div>
@@ -101,10 +102,9 @@ export default function ProjectsArchivePage() {
           <div className="archive-grid all-projects-grid">
             {projects.map((project) => {
               const media = projectMedia(project)
-              const thumbnail = media.find((item) => item.type === 'image')?.url
-              const showThumbnail = thumbnail && !failedThumbnails.has(project.id)
+              const hasThumbnail = projectImageSources(project, 3).length > 0
               return <article className="archive-card" key={project.id}>
-                {showThumbnail ? <img src={thumbnail} alt={project.title} loading="lazy" onError={() => setFailedThumbnails((current) => new Set(current).add(project.id))} /> : <div className="archive-placeholder"><strong>{String(project.year)}</strong><span>Project file</span></div>}
+                {hasThumbnail ? <div className="archive-card-thumbnail"><ProjectThumbnail project={project} /></div> : <div className="archive-placeholder"><strong>{String(project.year)}</strong><span>Project file</span></div>}
                 <div>
                   <span>{new Date(2000, project.month - 1, 1).toLocaleString('en', { month: 'short' })} {project.year}{project.client_name ? ` · ${project.client_name}` : ''}</span>
                   <h2>{project.title}</h2>

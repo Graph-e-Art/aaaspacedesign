@@ -390,7 +390,7 @@ function whatsapp_url(string $phone, string $name): string {
       </select>
       <span id="featured-position-help" class="muted">Choose one of five homepage slots. Each slot can hold one published project.</span>
     </label>
-    <label class="field">Thumbnail / cover image URL <span class="muted">Optional · direct public image link</span><input name="image_url" type="url" placeholder="https://yourdomain.com/assets/project-thumbnails/project.jpg" value="<?= h((string)($editingProject['image_url'] ?? '')) ?>"><small class="muted">Upload the image in cPanel File Manager under public_html/assets/project-thumbnails/, then paste its full URL here.</small></label>
+    <label class="field">Fallback cover image URL <span class="muted">Optional · used if gallery has no images</span><input name="image_url" type="url" placeholder="https://yourdomain.com/assets/project-thumbnails/project.jpg" value="<?= h((string)($editingProject['image_url'] ?? '')) ?>"><small class="muted">Homepage and archive thumbnails use the first three Image media links. Google Drive images need sharing set to Anyone with the link · Viewer.</small></label>
     <label class="field">Google Drive video embed link <span class="muted">Optional legacy link</span><input name="embed_url" type="url" placeholder="https://drive.google.com/..." value="<?= h((string)($editingProject['embed_url'] ?? '')) ?>"></label>
     <?php if ($isEditingProject): ?>
       <label class="field">Status
