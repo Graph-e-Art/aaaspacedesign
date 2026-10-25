@@ -264,6 +264,14 @@ function App(){
             <aside className="dynamic-project-details">
               <h2 id="dynamic-project-title">{selectedDynamicProject.title}</h2>
               <p>{selectedDynamicProject.description}</p>
+              {Array.isArray(selectedDynamicProject.work_tags) && selectedDynamicProject.work_tags.length > 0 && (
+                <div className="dynamic-project-work-tags">
+                  <h3>Work tags</h3>
+                  <ul>
+                    {selectedDynamicProject.work_tags.map(tag => <li key={tag.id ?? tag.slug ?? tag.name}>{tag.name}</li>)}
+                  </ul>
+                </div>
+              )}
             </aside>
           </div>
           <div className="dynamic-project-footer">
