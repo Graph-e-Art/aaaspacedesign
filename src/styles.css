@@ -1028,3 +1028,236 @@
 @media (prefers-reduced-motion: reduce) {
   .project-thumbnail-slide { transition: none; }
 }
+
+
+/* AA Associate homepage refinement: quieter headings and image-led project cards. */
+.hero-slider .hero-copy h1,
+#about.who-we-are .who-we-are-content h2,
+#projects #projects-title,
+.contact-trigger #contact-trigger-title,
+.dynamic-project-details #dynamic-project-title,
+.dynamic-project-footer .eyebrow {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem !important;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+.hero-slider .hero-copy h1 {
+  max-width: 700px;
+  padding-left: 14px;
+  border-left: 2px solid #cda98b;
+  color: #fff;
+}
+#about.who-we-are .who-we-are-content h2,
+#projects #projects-title,
+.contact-trigger #contact-trigger-title,
+.dynamic-project-details #dynamic-project-title,
+.dynamic-project-footer .eyebrow {
+  color: #8a5a44;
+}
+#about.who-we-are .who-we-are-content h2::after,
+#projects #projects-title::after,
+.contact-trigger #contact-trigger-title::after {
+  display: block;
+  width: 30px;
+  height: 1px;
+  margin-top: 8px;
+  background: #8a5a44;
+  content: '';
+}
+
+.portfolio-client-overlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, transparent, rgba(36, 35, 33, .84));
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.3;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .22s ease, transform .22s ease;
+  pointer-events: none;
+}
+.portfolio-gallery .gallery-image:hover .portfolio-client-overlay,
+.portfolio-gallery .gallery-image:focus-visible .portfolio-client-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Project dialog: place media in the first viewport and metadata at the bottom. */
+.dynamic-project-lightbox {
+  place-items: center;
+  padding: 12px 18px;
+}
+.dynamic-project-panel {
+  position: relative;
+  width: min(1180px, 100%);
+  max-height: calc(100dvh - 24px);
+  padding: 12px 18px 14px;
+}
+.dynamic-project-header {
+  position: sticky;
+  top: -12px;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 40px;
+  margin: -12px -18px 0;
+  padding: 6px 18px 4px;
+  border: 0;
+  background: rgba(250, 248, 245, .96);
+}
+.dynamic-project-header .lightbox-close-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #ded8d2;
+  background: #fff;
+}
+.dynamic-project-header .lightbox-close-button svg {
+  width: 16px;
+  height: 16px;
+}
+.dynamic-project-body {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: start;
+  gap: 18px;
+  padding-top: 0;
+}
+.dynamic-project-gallery {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+.dynamic-project-viewer,
+.dynamic-project-viewer img,
+.dynamic-project-viewer iframe {
+  width: 100%;
+  height: clamp(260px, 50dvh, 420px);
+  min-height: 0;
+}
+.dynamic-project-viewer img,
+.dynamic-project-viewer iframe {
+  object-fit: contain;
+}
+.dynamic-project-caption {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+}
+.dynamic-project-thumbnails {
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-top: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.dynamic-project-thumbnails button {
+  flex: 0 0 auto;
+  min-width: 112px;
+  padding: 8px;
+}
+.dynamic-project-details {
+  padding: 18px;
+}
+.dynamic-project-details #dynamic-project-title {
+  margin: 0 0 12px;
+}
+.dynamic-project-details > p {
+  margin: 0;
+  color: #625c57;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.dynamic-project-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e8ded4;
+}
+.dynamic-project-footer .eyebrow {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.dynamic-project-footer > span {
+  color: #625c57;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .dynamic-project-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .dynamic-project-details {
+    order: 0;
+  }
+  .dynamic-project-viewer,
+  .dynamic-project-viewer img,
+  .dynamic-project-viewer iframe {
+    height: clamp(240px, 44dvh, 360px);
+  }
+}
+@media (max-width: 560px) {
+  .dynamic-project-lightbox {
+    place-items: stretch;
+    padding: 8px;
+  }
+  .dynamic-project-panel {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    padding: 10px 12px 12px;
+  }
+  .dynamic-project-header {
+    top: -10px;
+    min-height: 38px;
+    margin: -10px -12px 0;
+    padding: 4px 12px;
+  }
+  .dynamic-project-header .lightbox-close-button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+  .dynamic-project-viewer,
+  .dynamic-project-viewer img,
+  .dynamic-project-viewer iframe {
+    height: clamp(220px, 42dvh, 340px);
+  }
+  .dynamic-project-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .dynamic-project-footer > span {
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-client-overlay {
+    transition: none;
+  }
+}
