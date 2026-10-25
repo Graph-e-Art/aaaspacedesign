@@ -28,7 +28,10 @@ function driveVideoPosterUrl(id) {
   return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w640`
 }
 
-export function projectPreviewSlides(project, maxImages = 3) {
+export function projectPreviewSlides(project, maxSlides = 3) {
+  const limit = Math.max(0, Math.floor(Number(maxSlides) || 0))
+  if (!limit) return []
+
   const media = Array.isArray(project?.media) ? project.media : []
   const imageEntries = media.filter((item) => item?.type === 'image' && item.url)
 
@@ -36,28 +39,37 @@ export function projectPreviewSlides(project, maxImages = 3) {
     imageEntries.push({ type: 'image', url: project.image_url, label: 'Project cover' })
   }
 
+  const slides = []
   const seenImages = new Set()
-  const images = []
   for (const item of imageEntries) {
     const src = normalizeProjectImageUrl(item.url, 'w640')
     if (!src || seenImages.has(src)) continue
     seenImages.add(src)
-    images.push({ type: 'image', key: `image:${src}`, src, label: item.label || '' })
-    if (images.length >= maxImages) break
+    slides.push({ type: 'image', key: `image:${src}`, src, label: item.label || '' })
+    if (slides.length >= limit) return slides
   }
 
-  const videoEntry = media.find((item) => item?.type === 'drive' && driveFileId(item.url))
-    || (project?.embed_url ? { type: 'drive', url: project.embed_url, label: 'Project video' } : null)
-  const videoId = videoEntry ? driveFileId(videoEntry.url) : ''
-  const video = videoId ? {
-    type: 'video',
-    key: `video:${videoId}`,
-    src: driveVideoPreviewUrl(videoId),
-    poster: driveVideoPosterUrl(videoId),
-    label: videoEntry.label || 'Project video',
-  } : null
+  const videoEntries = media.filter((item) => item?.type === 'drive' && driveFileId(item.url))
+  if (!videoEntries.length && project?.embed_url && driveFileId(project.embed_url)) {
+    videoEntries.push({ type: 'drive', url: project.embed_url, label: 'Project video' })
+  }
 
-  return video ? [...images, video] : images
+  const seenVideos = new Set()
+  for (const item of videoEntries) {
+    const videoId = driveFileId(item.url)
+    if (!videoId || seenVideos.has(videoId)) continue
+    seenVideos.add(videoId)
+    slides.push({
+      type: 'video',
+      key: `video:${videoId}`,
+      src: driveVideoPreviewUrl(videoId),
+      poster: driveVideoPosterUrl(videoId),
+      label: item.label || 'Project video',
+    })
+    if (slides.length >= limit) break
+  }
+
+  return slides
 }
 
 export function projectImageSources(project, limit = 3) {

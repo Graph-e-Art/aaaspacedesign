@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { projectImageSources, projectPreviewSlides } from './projectThumbnailData.js'
 
-test('returns at most three distinct image slides and one video slide', () => {
+test('returns three distinct image slides and does not exceed the thumbnail limit', () => {
   const project = {
     image_url: 'https://images.example.com/cover.jpg',
     media: [
@@ -16,15 +16,29 @@ test('returns at most three distinct image slides and one video slide', () => {
   }
 
   const slides = projectPreviewSlides(project)
-  assert.deepEqual(slides.map((slide) => slide.type), ['image', 'image', 'image', 'video'])
-  assert.deepEqual(slides.slice(0, 3).map((slide) => slide.src), [
+  assert.deepEqual(slides.map((slide) => slide.type), ['image', 'image', 'image'])
+  assert.deepEqual(slides.map((slide) => slide.src), [
     'https://images.example.com/one.jpg',
     'https://images.example.com/two.jpg',
     'https://images.example.com/three.jpg',
   ])
-  assert.match(slides[3].src, /autoplay=1/)
-  assert.match(slides[3].src, /mute=1/)
-  assert.equal(slides[3].label, 'Walkthrough')
+})
+
+test('fills three thumbnail positions with images followed by animated Drive previews', () => {
+  const slides = projectPreviewSlides({
+    image_url: 'https://images.example.com/cover.jpg',
+    media: [
+      { type: 'image', url: 'https://images.example.com/inside.jpg' },
+      { type: 'drive', url: 'https://drive.google.com/file/d/video-one/view', label: 'Walkthrough' },
+      { type: 'drive', url: 'https://drive.google.com/file/d/video-two/view', label: 'Details' },
+    ],
+  })
+
+  assert.deepEqual(slides.map((slide) => slide.type), ['image', 'image', 'video'])
+  assert.equal(slides[2].label, 'Walkthrough')
+  assert.match(slides[2].src, /autoplay=1/)
+  assert.match(slides[2].src, /mute=1/)
+  assert.equal(slides[2].poster, 'https://drive.google.com/thumbnail?id=video-one&sz=w640')
 })
 
 test('adds a distinct cover image when fewer than three gallery images exist', () => {
@@ -52,11 +66,19 @@ test('does not duplicate the project cover and uses a small Drive image size', (
   assert.equal(slides[1].src, 'https://drive.google.com/thumbnail?id=second-id&sz=w640')
 })
 
-test('supports a video-only project and reports images separately', () => {
-  const project = { embed_url: 'https://drive.google.com/file/d/video-id/view', media: [] }
+test('supports video-only projects and honors an explicit slide limit', () => {
+  const project = {
+    embed_url: 'https://drive.google.com/file/d/video-id/view',
+    media: [
+      { type: 'drive', url: 'https://drive.google.com/file/d/video-id/view' },
+      { type: 'drive', url: 'https://drive.google.com/file/d/second-video/view' },
+    ],
+  }
   const slides = projectPreviewSlides(project)
-  assert.equal(slides.length, 1)
-  assert.equal(slides[0].type, 'video')
+  assert.equal(slides.length, 2)
+  assert.deepEqual(slides.map((slide) => slide.type), ['video', 'video'])
   assert.equal(slides[0].poster, 'https://drive.google.com/thumbnail?id=video-id&sz=w640')
   assert.deepEqual(projectImageSources(project), [])
+  assert.deepEqual(projectPreviewSlides(project, 1).map((slide) => slide.key), ['video:video-id'])
+  assert.deepEqual(projectPreviewSlides(project, 0), [])
 })
