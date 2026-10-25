@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowDown, ArrowUpRight, Check, ChevronDown, Expand, HardHat, LayoutGrid, Mail, MapPin, Menu, MessageCircle, PenTool, Phone, Play, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Check, ChevronDown, ChevronLeft, ChevronRight, Expand, HardHat, LayoutGrid, Mail, MapPin, Menu, MessageCircle, PenTool, Phone, Play, X } from 'lucide-react'
 import ServiceSection from './ServiceSection.jsx'
 import ProjectsArchivePage from './ProjectsArchivePage.jsx'
 import ProjectThumbnail, { normalizeProjectImageUrl, projectImageSources } from './ProjectThumbnail.jsx'
@@ -179,12 +179,10 @@ function App(){
 
   if(window.location.pathname==='/projects.html') return <ProjectsArchivePage/>
   return <div className="site">
-    <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}><div className="header-main"><div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Associate home"><span className="brand-palette" aria-hidden="true" /><img src={A+'aa-associate-logo-new-j.png'} alt="AA Associate logo" /></a></div><nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation"><button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Service</button><button onClick={()=>scrollTo('projects')}>Portfolio</button><button onClick={()=>scrollTo('about')}>About</button><button onClick={()=>openContact()}>Contact</button></nav><div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={19}/></a><button className="header-quote" onClick={()=>openContact()}>Get a Quote <ArrowUpRight size={15}/></button></div><button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button></div></header>
+    <header className={scrolled?'nav-wrap scrolled':'nav-wrap'}><div className="header-main"><div className="brand-lockup"><a className="brand" href="#top" aria-label="AA Associate home"><span className="brand-palette" aria-hidden="true" /><img src={A+'aa-associate-logo-new-j.png'} alt="AA Associate logo" /></a><span className="header-brand-name">AA Associate</span></div><nav className={menuOpen?'nav open':'nav'} aria-label="Main navigation"><button onClick={()=>scrollTo('top')}>Home</button><button onClick={()=>scrollTo('services')}>Service</button><button onClick={()=>scrollTo('projects')}>Portfolio</button><button onClick={()=>scrollTo('about')}>About</button><button onClick={()=>openContact()}>Contact</button></nav><div className="header-actions"><a className="header-whatsapp" href="https://wa.me/923009233163" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"><MessageCircle size={19}/></a><button className="header-quote" onClick={()=>openContact()}>Get a Quote <ArrowUpRight size={15}/></button></div><button className="menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-label={menuOpen?'Close menu':'Open menu'}>{menuOpen?<X/>:<Menu/>}</button></div></header>
     <main id="top" className="preview-homepage">
       <section className="hero hero-slider section-pad" style={{'--hero-poster':`url(${A}media/aa-associate-hero-poster.jpg)`}} aria-labelledby="hero-title">
         <div className="hero-copy reveal">
-          <p className="eyebrow">AA Associate</p>
-          <span className="hero-slide-number">{heroSlides[heroSlide].number} / 03</span>
           <h1 id="hero-title">{heroSlides[heroSlide].title}</h1>
           <p className="lead">{heroSlides[heroSlide].description}</p>
           <div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('projects')}>See more works <ArrowUpRight size={18}/></button><button className="text-link" onClick={()=>openContact()}>Start a project <ArrowUpRight size={18}/></button></div>
@@ -247,18 +245,14 @@ function App(){
                   <iframe src={driveEmbed(mediaFor(selectedDynamicProject)[selectedDynamicMedia].url)} title={mediaFor(selectedDynamicProject)[selectedDynamicMedia].label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/> :
                   <img src={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.url} alt={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.label || selectedDynamicProject.title}/>
                 }
+                {mediaFor(selectedDynamicProject).length > 1 && <>
+                  <button type="button" className="dynamic-project-nav dynamic-project-nav-prev" onClick={() => setSelectedDynamicMedia(index => (index - 1 + mediaFor(selectedDynamicProject).length) % mediaFor(selectedDynamicProject).length)} aria-label="Previous project media"><ChevronLeft size={24}/></button>
+                  <button type="button" className="dynamic-project-nav dynamic-project-nav-next" onClick={() => setSelectedDynamicMedia(index => (index + 1) % mediaFor(selectedDynamicProject).length)} aria-label="Next project media"><ChevronRight size={24}/></button>
+                </>}
               </div>
               <div className="dynamic-project-caption">
                 <span>{mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.label || 'Project media'}</span>
                 <span>{selectedDynamicMedia + 1} / {mediaFor(selectedDynamicProject).length}</span>
-              </div>
-              <div className="dynamic-project-thumbnails">
-                {mediaFor(selectedDynamicProject).map((media, index) => (
-                  <button type="button" className={selectedDynamicMedia === index ? 'selected' : ''} onClick={() => setSelectedDynamicMedia(index)} key={`${media.url}-${index}`}>
-                    <span>{media.type === 'drive' ? 'VIDEO' : 'IMAGE'}</span>
-                    <small>{media.label || `Media ${index + 1}`}</small>
-                  </button>
-                ))}
               </div>
             </div>
             <aside className="dynamic-project-details">

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { normalizeProjectImageUrl, projectImageSources, projectPreviewSlides } from './projectThumbnailData.js'
 export { normalizeProjectImageUrl, projectImageSources, projectPreviewSlides }
 const SLIDE_INTERVAL_MS = 4000
-const FADE_DURATION_MS = 280
+const FADE_DURATION_MS = 620
 function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
