@@ -165,10 +165,44 @@ function initializeProjectMediaPreviews() {
   })
 }
 
+function initializeWorkTagDropdown() {
+  const dropdown = document.querySelector('[data-work-tag-dropdown]')
+  const count = dropdown?.querySelector('[data-work-tag-count]')
+  if (!dropdown || !count) return
+
+  const updateCount = () => {
+    const selected = dropdown.querySelectorAll('input[name="work_tag_ids[]"]:checked').length
+    count.textContent = `${selected} selected`
+  }
+  dropdown.addEventListener('change', updateCount)
+  updateCount()
+}
+
+function initializeProjectListThumbnails() {
+  document.querySelectorAll('[data-project-thumbnail]').forEach((image) => {
+    const source = image.dataset.projectThumbnail?.trim()
+    const fallback = image.parentElement?.querySelector('[data-project-thumbnail-fallback]')
+    if (!source) return
+
+    image.referrerPolicy = 'no-referrer'
+    image.addEventListener('error', () => {
+      image.hidden = true
+      if (fallback) fallback.hidden = false
+    }, { once: true })
+    image.src = getDriveThumbnailUrl(source) || source
+  })
+}
+
+function initializeAdminPage() {
+  initializeProjectMediaPreviews()
+  initializeWorkTagDropdown()
+  initializeProjectListThumbnails()
+}
+
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeProjectMediaPreviews, { once: true })
+    document.addEventListener('DOMContentLoaded', initializeAdminPage, { once: true })
   } else {
-    initializeProjectMediaPreviews()
+    initializeAdminPage()
   }
 }

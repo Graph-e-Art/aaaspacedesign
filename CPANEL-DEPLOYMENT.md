@@ -92,7 +92,7 @@ Back up MySQL before deployment. For an existing site, run `database/migrations/
 
 For existing installations, back up MySQL, then run `database/migrations/20261026_project_tags.sql` once in phpMyAdmin after the client-tag and featured-project migrations. It creates project/client and project/work-tag links, carries each current `projects.client_id` into the new link table, and seeds three work categories with 23 service tags. Do not run it twice. Deploy the code only after the migration succeeds.
 
-The protected `/admin/?tab=projects` page lets an admin select multiple client tags and multiple work-type tags when creating or editing a project. Add client names through the existing **Add client tag** control. Work tags are grouped under **IT Infrastructure & Structured Cabling**, **MEP Services: Electrical, Plumbing & HVAC**, and **Interior Fit-out, Carpentry & Furniture Works**. Client galleries count and show projects for every associated client. Fresh installations can use the updated `database/schema.sql` instead of the migrations.
+The protected `/admin/?tab=projects` page lets an admin select one client from a dropdown and multiple work-type tags from a grouped dropdown when creating or editing a project. Add client names through the existing **Add client tag** control. Work tags are grouped under **IT Infrastructure & Structured Cabling**, **MEP Services: Electrical, Plumbing & HVAC**, and **Interior Fit-out, Carpentry & Furniture Works**. Each client gallery shows projects assigned to that client. Fresh installations can use the updated `database/schema.sql` instead of the migrations.
 
 ## Featured portfolio slots
 
