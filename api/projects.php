@@ -16,7 +16,7 @@ try {
     $params = [];
     if ($year) { $where[] = 'p.year = :year'; $params[':year'] = $year; }
     if ($month) { $where[] = 'p.month = :month'; $params[':month'] = $month; }
-    if ($clientId) { $where[] = 'p.client_id = :client_id'; $params[':client_id'] = $clientId; }
+    if ($clientId) { $where[] = 'EXISTS (SELECT 1 FROM project_clients pc WHERE pc.project_id = p.id AND pc.client_id = :client_id)'; $params[':client_id'] = $clientId; }
     if ($featuredOnly) { $where[] = 'p.featured_order BETWEEN 1 AND 5'; }
     $orderBy = $featuredOnly ? 'p.featured_order ASC' : 'p.year DESC, p.month DESC, p.id DESC';
     $countStatement = $pdo->prepare('SELECT COUNT(*) FROM projects p WHERE ' . implode(' AND ', $where));
@@ -35,12 +35,28 @@ try {
         foreach ($mediaStatement->fetchAll() as $media) {
             $mediaByProject[(int)$media['project_id']][] = ['type' => $media['media_type'], 'url' => $media['url'], 'label' => $media['label']];
         }
+        $clientTagStatement = $pdo->prepare("SELECT pc.project_id, c.id, c.name FROM project_clients pc JOIN clients c ON c.id = pc.client_id WHERE pc.project_id IN ($placeholders) ORDER BY c.name ASC");
+        $clientTagStatement->execute($ids);
+        $clientsByProject = [];
+        foreach ($clientTagStatement->fetchAll() as $clientTag) {
+            $clientsByProject[(int)$clientTag['project_id']][] = ['id' => (int)$clientTag['id'], 'name' => $clientTag['name']];
+        }
+        $workTagStatement = $pdo->prepare("SELECT pwt.project_id, wt.id, wt.category_key, wt.category_label, wt.name, wt.slug FROM project_work_tags pwt JOIN work_tags wt ON wt.id = pwt.work_tag_id WHERE pwt.project_id IN ($placeholders) ORDER BY wt.sort_order ASC, wt.id ASC");
+        $workTagStatement->execute($ids);
+        $workTagsByProject = [];
+        foreach ($workTagStatement->fetchAll() as $workTag) {
+            $workTagsByProject[(int)$workTag['project_id']][] = ['id' => (int)$workTag['id'], 'category' => $workTag['category_label'], 'category_key' => $workTag['category_key'], 'name' => $workTag['name'], 'slug' => $workTag['slug']];
+        }
         foreach ($projects as &$project) {
             $project['id'] = (int)$project['id'];
             $project['client_id'] = $project['client_id'] === null ? null : (int)$project['client_id'];
             $project['year'] = (int)$project['year'];
             $project['month'] = (int)$project['month'];
             $project['featured_order'] = $project['featured_order'] === null ? null : (int)$project['featured_order'];
+            $project['clients'] = $clientsByProject[$project['id']] ?? [];
+            $project['client_names'] = array_column($project['clients'], 'name');
+            if ($project['client_names']) { $project['client_name'] = implode(', ', $project['client_names']); }
+            $project['work_tags'] = $workTagsByProject[$project['id']] ?? [];
             $project['media'] = $mediaByProject[$project['id']] ?? [];
             if (!$project['media']) {
                 if (!empty($project['image_url'])) { $project['media'][] = ['type' => 'image', 'url' => $project['image_url'], 'label' => null]; }

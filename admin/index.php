@@ -73,6 +73,34 @@ function find_featured_slot_conflict(PDO $pdo, int $featuredOrder, ?int $exceptP
 function featured_slot_conflict_message(int $slot, array $project): string {
     return 'Portfolio ' . $slot . ' is already assigned to “' . (string)$project['title'] . '”. Edit that project and set it to Not featured first.';
 }
+function posted_tag_ids($value): ?array {
+    if (!is_array($value)) { return null; }
+    $ids = [];
+    foreach ($value as $rawId) {
+        $id = filter_var($rawId, FILTER_VALIDATE_INT);
+        if ($id === false || $id < 1) { return null; }
+        $ids[$id] = $id;
+    }
+    return array_values($ids);
+}
+function tag_ids_exist(PDO $pdo, string $table, array $ids): bool {
+    if (!$ids) { return true; }
+    if (!in_array($table, ['clients', 'work_tags'], true)) { return false; }
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $statement = $pdo->prepare('SELECT id FROM ' . $table . ' WHERE id IN (' . $placeholders . ')');
+    $statement->execute($ids);
+    return count($statement->fetchAll(PDO::FETCH_COLUMN)) === count($ids);
+}
+function sync_project_tags(PDO $pdo, int $projectId, array $clientIds, array $workTagIds): void {
+    $deleteClients = $pdo->prepare('DELETE FROM project_clients WHERE project_id = :project_id');
+    $deleteClients->execute([':project_id' => $projectId]);
+    $insertClient = $pdo->prepare('INSERT INTO project_clients (project_id, client_id) VALUES (:project_id, :client_id)');
+    foreach ($clientIds as $clientId) { $insertClient->execute([':project_id' => $projectId, ':client_id' => $clientId]); }
+    $deleteWorkTags = $pdo->prepare('DELETE FROM project_work_tags WHERE project_id = :project_id');
+    $deleteWorkTags->execute([':project_id' => $projectId]);
+    $insertWorkTag = $pdo->prepare('INSERT INTO project_work_tags (project_id, work_tag_id) VALUES (:project_id, :work_tag_id)');
+    foreach ($workTagIds as $workTagId) { $insertWorkTag->execute([':project_id' => $projectId, ':work_tag_id' => $workTagId]); }
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create_client') {
     $clientName = trim((string)($_POST['client_name'] ?? ''));
     $clientSlug = trim((string)preg_replace('/[^a-z0-9]+/i', '-', strtolower($clientName)), '-');
@@ -89,7 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     }
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create_project') {
-    $clientId = filter_var($_POST['client_id'] ?? null, FILTER_VALIDATE_INT);
+    $clientIds = posted_tag_ids($_POST['client_ids'] ?? []);
+    $workTagIds = posted_tag_ids($_POST['work_tag_ids'] ?? []);
+    $clientId = $clientIds[0] ?? null;
     $title = trim((string)($_POST['title'] ?? ''));
     $year = filter_var($_POST['year'] ?? null, FILTER_VALIDATE_INT);
     $month = filter_var($_POST['month'] ?? null, FILTER_VALIDATE_INT);
@@ -100,17 +130,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     $featuredOrder = $featuredOrderRaw === '' ? null : filter_var($featuredOrderRaw, FILTER_VALIDATE_INT);
     if (!hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
         $projectError = 'This form expired. Reload the page and try again.';
-    } elseif (!$clientId || $title === '' || !$year || !$month || $month < 1 || $month > 12 || $description === '') {
-        $projectError = 'Client, title, valid year, month, and description are required.';
+    } elseif ($clientIds === null || !$clientIds || $workTagIds === null || $title === '' || !$year || !$month || $month < 1 || $month > 12 || $description === '') {
+        $projectError = 'Choose at least one valid client, then enter a title, year, month, and description.';
     } elseif ($featuredOrderRaw !== '' && ($featuredOrder === false || $featuredOrder < 1 || $featuredOrder > 5)) {
         $projectError = 'Choose Not featured or a Portfolio 1–5 slot.';
     } elseif (($imageUrl !== '' && !filter_var($imageUrl, FILTER_VALIDATE_URL)) || ($embedUrl !== '' && !filter_var($embedUrl, FILTER_VALIDATE_URL))) {
         $projectError = 'Image and Google Drive links must be valid URLs.';
     } else {
         try {
-            $clientCheck = $pdo->prepare('SELECT id FROM clients WHERE id = :client_id');
-            $clientCheck->execute([':client_id' => $clientId]);
-            if (!$clientCheck->fetch()) { throw new RuntimeException('Invalid client tag.'); }
+            if (!tag_ids_exist($pdo, 'clients', $clientIds) || !tag_ids_exist($pdo, 'work_tags', $workTagIds)) {
+                throw new RuntimeException('Invalid client or work tag.');
+            }
             $pdo->beginTransaction();
             $portfolioConflict = $featuredOrder !== null ? find_featured_slot_conflict($pdo, (int)$featuredOrder) : null;
             if ($portfolioConflict) {
@@ -133,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
             }
             $statement->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null, ':featured_order' => $featuredOrder]);
             $projectId = (int)$pdo->lastInsertId();
+            sync_project_tags($pdo, $projectId, $clientIds, $workTagIds);
             $mediaStatement = $pdo->prepare('INSERT INTO project_media (project_id, media_type, url, label, sort_order) VALUES (:project_id, :media_type, :url, :label, :sort_order)');
             foreach ($mediaUrls as $index => $mediaUrl) {
                 $mediaUrl = trim((string)$mediaUrl);
@@ -153,8 +184,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_project') {
     $projectId = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-    $clientInput = trim((string)($_POST['client_id'] ?? ''));
-    $clientId = $clientInput === '' ? null : filter_var($clientInput, FILTER_VALIDATE_INT);
+    $clientIds = posted_tag_ids($_POST['client_ids'] ?? []);
+    $workTagIds = posted_tag_ids($_POST['work_tag_ids'] ?? []);
+    $clientId = $clientIds ? ($clientIds[0] ?? null) : null;
     $title = trim((string)($_POST['title'] ?? ''));
     $year = filter_var($_POST['year'] ?? null, FILTER_VALIDATE_INT);
     $month = filter_var($_POST['month'] ?? null, FILTER_VALIDATE_INT);
@@ -170,8 +202,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
     if (!hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
         $projectError = 'This form expired. Reload the page and try again.';
-    } elseif (!$projectId || $clientId === false || ($clientId !== null && $clientId < 1) || $title === '' || strlen($title) > 180 || !$year || $year < 2000 || $year > 2200 || !$month || $month < 1 || $month > 12 || $description === '' || strlen($description) > 2000) {
-        $projectError = 'Client, title, valid year, month, and description are required.';
+    } elseif (!$projectId || $clientIds === null || $workTagIds === null || $title === '' || strlen($title) > 180 || !$year || $year < 2000 || $year > 2200 || !$month || $month < 1 || $month > 12 || $description === '' || strlen($description) > 2000) {
+        $projectError = 'Choose valid tags, then enter a title, year, month, and description.';
     } elseif (!in_array($status, ['Published', 'Archived', 'Draft'], true)) {
         $projectError = 'Choose a valid project status.';
     } elseif ($featuredOrderRaw !== '' && ($featuredOrder === false || $featuredOrder < 1 || $featuredOrder > 5)) {
@@ -200,10 +232,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
         if ($projectError === '') {
             try {
-                if ($clientId !== null) {
-                    $clientCheck = $pdo->prepare('SELECT id FROM clients WHERE id = :client_id');
-                    $clientCheck->execute([':client_id' => $clientId]);
-                    if (!$clientCheck->fetch()) { throw new RuntimeException('Invalid client tag.'); }
+                if (!tag_ids_exist($pdo, 'clients', $clientIds) || !tag_ids_exist($pdo, 'work_tags', $workTagIds)) {
+                    throw new RuntimeException('Invalid client or work tag.');
                 }
 
                 $projectCheck = $pdo->prepare('SELECT id FROM projects WHERE id = :id');
@@ -225,6 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 } else {
                     $update = $pdo->prepare('UPDATE projects SET client_id = :client_id, title = :title, year = :year, month = :month, description = :description, image_url = :image_url, embed_url = :embed_url, status = :status, featured_order = :featured_order WHERE id = :id');
                     $update->execute([':client_id' => $clientId, ':title' => $title, ':year' => $year, ':month' => $month, ':description' => $description, ':image_url' => $firstImage ?: null, ':embed_url' => $firstDrive ?: null, ':status' => $status, ':featured_order' => $featuredOrder, ':id' => $projectId]);
+                    sync_project_tags($pdo, (int)$projectId, $clientIds, $workTagIds);
                     $deleteMedia = $pdo->prepare('DELETE FROM project_media WHERE project_id = :project_id');
                     $deleteMedia->execute([':project_id' => $projectId]);
                     $insertMedia = $pdo->prepare('INSERT INTO project_media (project_id, media_type, url, label, sort_order) VALUES (:project_id, :media_type, :url, :label, :sort_order)');
@@ -244,15 +275,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     }
 }
 $clientRows = [];
+$workTagGroups = [];
+$selectedClientIds = ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['create_project', 'update_project'], true)) ? (posted_tag_ids($_POST['client_ids'] ?? []) ?? []) : [];
+$selectedWorkTagIds = ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['create_project', 'update_project'], true)) ? (posted_tag_ids($_POST['work_tag_ids'] ?? []) ?? []) : [];
 try {
     $clientRows = $pdo->query('SELECT id, name FROM clients ORDER BY name ASC')->fetchAll();
 } catch (Throwable $error) {
     error_log('Admin client query failed: ' . $error->getMessage());
-    $clientError = 'Client tags are unavailable. Run database/migrations/20261023_client_tags.sql first.';
+    $clientError = 'Client tags are unavailable. Run the project-tag migration first.';
+}
+try {
+    $workTagRows = $pdo->query('SELECT id, category_key, category_label, name FROM work_tags ORDER BY sort_order ASC, id ASC')->fetchAll();
+    foreach ($workTagRows as $workTag) { $workTagGroups[$workTag['category_key']]['label'] = $workTag['category_label']; $workTagGroups[$workTag['category_key']]['tags'][] = $workTag; }
+} catch (Throwable $error) {
+    error_log('Admin work-tag query failed: ' . $error->getMessage());
+    $projectError = 'Work tags are unavailable. Run database/migrations/20261026_project_tags.sql first.';
 }
 $projectRows = [];
 try {
-    $projectRows = $pdo->query("SELECT p.*, c.name AS client_name, COALESCE(NULLIF(p.image_url, ''), (SELECT pm.url FROM project_media pm WHERE pm.project_id = p.id AND pm.media_type = 'image' ORDER BY pm.sort_order ASC, pm.id ASC LIMIT 1)) AS thumbnail_url FROM projects p LEFT JOIN clients c ON c.id = p.client_id ORDER BY p.year DESC, p.month DESC, p.id DESC")->fetchAll();
+    $projectRows = $pdo->query("SELECT p.*, c.name AS client_name, (SELECT GROUP_CONCAT(c2.name ORDER BY c2.name SEPARATOR ', ') FROM project_clients pc2 JOIN clients c2 ON c2.id = pc2.client_id WHERE pc2.project_id = p.id) AS client_names, (SELECT GROUP_CONCAT(wt.name ORDER BY wt.sort_order SEPARATOR ' · ') FROM project_work_tags pwt JOIN work_tags wt ON wt.id = pwt.work_tag_id WHERE pwt.project_id = p.id) AS work_tag_names, COALESCE(NULLIF(p.image_url, ''), (SELECT pm.url FROM project_media pm WHERE pm.project_id = p.id AND pm.media_type = 'image' ORDER BY pm.sort_order ASC, pm.id ASC LIMIT 1)) AS thumbnail_url FROM projects p LEFT JOIN clients c ON c.id = p.client_id ORDER BY p.year DESC, p.month DESC, p.id DESC")->fetchAll();
 } catch (Throwable $error) {
     error_log('Admin project query failed: ' . $error->getMessage());
 }
@@ -266,6 +307,14 @@ if ($editingProjectId) {
         $editStatement->execute([':id' => $editingProjectId]);
         $editingProject = $editStatement->fetch() ?: null;
         if ($editingProject) {
+            if (!($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_project' && $projectError !== '')) {
+                $clientTagStatement = $pdo->prepare('SELECT client_id FROM project_clients WHERE project_id = :project_id ORDER BY client_id ASC');
+                $clientTagStatement->execute([':project_id' => $editingProjectId]);
+                $selectedClientIds = array_map('intval', $clientTagStatement->fetchAll(PDO::FETCH_COLUMN));
+                $workTagStatement = $pdo->prepare('SELECT work_tag_id FROM project_work_tags WHERE project_id = :project_id ORDER BY work_tag_id ASC');
+                $workTagStatement->execute([':project_id' => $editingProjectId]);
+                $selectedWorkTagIds = array_map('intval', $workTagStatement->fetchAll(PDO::FETCH_COLUMN));
+            }
             $editMediaStatement = $pdo->prepare('SELECT media_type, url, label FROM project_media WHERE project_id = :project_id ORDER BY sort_order ASC, id ASC');
             $editMediaStatement->execute([':project_id' => $editingProjectId]);
             $editingMediaRows = $editMediaStatement->fetchAll();
@@ -291,7 +340,7 @@ if ($editingProjectId) {
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_project' && $projectError !== '') {
     $editingProject = array_merge($editingProject ?? ['id' => (int)$editingProjectId], [
-        'client_id' => (int)($_POST['client_id'] ?? 0),
+        'client_id' => (int)(($selectedClientIds[0] ?? 0)),
         'title' => (string)($_POST['title'] ?? ''),
         'year' => (int)($_POST['year'] ?? date('Y')),
         'month' => (int)($_POST['month'] ?? date('n')),
@@ -344,7 +393,7 @@ function whatsapp_url(string $phone, string $name): string {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard for managing AA Space Design enquiries and project portfolio entries."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard | AA Space Design</title>
 <style>body{margin:0;background:#f5f2eb;color:#3d3a35;font:14px Arial,sans-serif}.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}h1{margin:0;font-size:30px}.muted{color:#736c63}.field small.muted{font-size:11px;line-height:1.4;font-weight:400}.logout{color:#665849;text-decoration:none;font-weight:700}.list{display:grid;gap:18px}.item{background:#fff;border:1px solid #e6dfd3;padding:22px;box-shadow:0 10px 28px #3d3a350b}.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0;color:#736c63;font-size:13px}.meta strong{color:#3d3a35}.message{white-space:pre-wrap;line-height:1.6;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:7px;color:#665849;font-weight:700;font-size:12px}.field input,.field select,.field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}.field textarea{min-height:80px;resize:vertical}.actions{display:flex;align-items:end;gap:10px;margin-top:14px}.actions button{padding:11px 16px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.whatsapp{display:inline-block;padding:11px 16px;background:#665849;color:#fff;text-decoration:none;font-weight:700}.empty{background:#fff;padding:32px;border:1px solid #e6dfd3}.dashboard-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid #e6dfd3}.dashboard-tabs a{padding:12px 16px;color:#736c63;text-decoration:none;font-weight:700;border-bottom:3px solid transparent}.dashboard-tabs a.active{color:#3d3a35;border-color:#665849}.media-builder{display:grid;gap:12px;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.media-builder-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.add-media,.remove-media{padding:9px 12px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;cursor:pointer}.media-rows{display:grid;gap:8px}.media-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:8px;align-items:center}.media-row input,.media-row select{min-width:0;padding:10px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}@media(max-width:650px){.media-row{grid-template-columns:1fr}.media-row .remove-media{width:max-content}}.client-tag-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:18px 0;padding:16px;background:#f8f5f0;border:1px solid #e6dfd3}.client-tag-form button{padding:11px 16px;border:0;background:#665849;color:#fff;font-weight:700;cursor:pointer}.project-manager,.project-list{background:#fff;border:1px solid #e6dfd3;padding:24px;margin-bottom:18px}.project-manager h2,.project-list h2{margin:0 0 8px;font-size:22px}.project-form{display:grid;gap:14px;margin-top:22px}.project-form button{padding:12px 18px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.success-message{color:#2f6b45;font-weight:700}.project-list-items{display:grid;gap:12px}.project-list-items article{padding:15px 0;border-top:1px solid #e6dfd3}.project-list-items article div{display:flex;justify-content:space-between;gap:18px}.project-list-items article span{color:#736c63;font-size:12px}.project-list-items article p{margin:8px 0 0;color:#736c63;line-height:1.5;font-size:13px}@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.client-tag-form{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.actions{align-items:stretch;flex-direction:column}.actions button,.whatsapp{width:100%;box-sizing:border-box;text-align:center}}.project-list-items article .project-row-head{align-items:center}.edit-project{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;text-decoration:none;white-space:nowrap}.edit-project:hover,.edit-project:focus-visible{border-color:#665849;background:#f8f5f0}.project-form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.project-form .edit-cancel{display:inline-flex;align-items:center;min-height:42px;color:#665849;font-weight:700;text-decoration:underline;text-underline-offset:3px}@media(max-width:650px){.project-list-items article .project-row-head{align-items:flex-start;flex-direction:column}.project-form-actions{align-items:stretch}.project-list-items article .project-row-head{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:14px}.project-list-thumb,.project-thumb-empty{width:72px;height:60px;object-fit:cover;border:1px solid #e6dfd3;background:#f1eee8}.project-list-items article .project-thumb-empty{display:grid;place-items:center;color:#736c63;font-size:10px}.project-list-items article .project-row-copy{display:grid;gap:6px;min-width:0}.project-list-items article .project-row-copy>span{color:#736c63;font-size:12px}.project-list-items article .project-row-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.project-list-items article .portfolio-slot-tag{padding:5px 8px;border:1px solid #e6dfd3;background:#f8f5f0;color:#665849;font-size:11px;font-weight:700;white-space:nowrap}.featured-position-field{padding:14px;background:#f8f5f0;border:1px solid #e6dfd3}.featured-position-field .muted{line-height:1.5}@media(max-width:650px){.project-list-items article .project-row-head{grid-template-columns:58px minmax(0,1fr);gap:10px}.project-list-thumb,.project-thumb-empty{width:58px;height:54px}.project-list-items article .project-row-head .edit-project{grid-column:2;justify-self:start}.project-list-items article .project-row-title{align-items:flex-start;flex-direction:column;gap:6px}}}
 .project-date-featured-grid{display:grid;grid-template-columns:120px 170px 240px;gap:12px;align-items:end}.featured-position-field{min-width:0;padding:0;border:0;background:transparent}.featured-position-field select{min-width:0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.media-builder-head>div{display:grid;gap:4px}.media-builder-hint{font-size:11px;font-weight:400}.media-row{grid-template-columns:140px minmax(0,2fr) minmax(0,1fr) auto;align-items:start}.media-url-control{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:8px;align-items:start;min-width:0}.media-url-control input{width:100%;min-width:0;box-sizing:border-box}.media-preview{position:relative;display:grid;place-items:center;width:128px;aspect-ratio:16/10;overflow:hidden;border:1px solid #e6dfd3;background:#f1eee8;color:#736c63;font-size:10px;font-weight:400;text-align:center}.media-preview img,.media-preview iframe{display:block;width:100%;height:100%;border:0;object-fit:cover}.media-preview iframe{position:absolute;inset:0}.media-preview .media-preview-poster{position:absolute;inset:0;z-index:0}.media-preview .media-preview-player{position:absolute;inset:0;z-index:1}.media-preview-placeholder{padding:6px}.media-preview--poster .media-preview-player{display:none}@media(max-width:900px){.media-row{grid-template-columns:120px minmax(0,1fr) auto}.media-url-control{grid-column:2;grid-row:1 / span 2;grid-template-columns:minmax(0,1fr) 120px}.media-url-control .media-preview{width:120px}.media-row input[name="media_label[]"]{grid-column:2;grid-row:3}.media-row .remove-media{grid-column:3;grid-row:1;align-self:start}}@media(max-width:650px){.project-manager,.project-list{padding:16px}.project-date-featured-grid{grid-template-columns:minmax(72px,.72fr) minmax(92px,.92fr) minmax(112px,1fr);gap:8px}.project-date-featured-grid .field{font-size:11px}.project-date-featured-grid .field input,.project-date-featured-grid .field select{padding:8px;font-size:12px}.media-builder-head{align-items:flex-start;flex-direction:column}.media-row{grid-template-columns:minmax(0,1fr)}.media-row .media-url-control{grid-column:auto;grid-row:auto;grid-template-columns:minmax(0,1fr) 112px}.media-url-control .media-preview{width:112px}.media-row input[name="media_label[]"]{grid-column:auto;grid-row:auto}.media-row .remove-media{grid-column:auto;grid-row:auto;width:max-content}}@media(max-width:360px){.project-date-featured-grid{grid-template-columns:56px minmax(0,.9fr) minmax(0,1.3fr);gap:6px}.project-date-featured-grid .field{font-size:10px;white-space:nowrap}.project-date-featured-grid .field input,.project-date-featured-grid .field select{padding:7px 5px;font-size:11px}}
-</style></head><body><main class="wrap"><header class="top"><div><p class="muted">AA Space Design</p><h1>AA Dashboard</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
+.tag-picker{min-width:0;margin:0;padding:16px;border:1px solid #e6dfd3;background:#fff}.tag-picker legend{padding:0 7px;color:#3d3a35;font-size:14px;font-weight:700}.tag-picker-help{margin:0 0 12px;font-size:12px;line-height:1.5}.tag-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px}.tag-choice{display:flex;align-items:flex-start;gap:10px;min-height:42px;padding:10px 12px;border:1px solid #e6dfd3;background:#fff;color:#3d3a35;font-size:13px;font-weight:400;line-height:1.4;cursor:pointer}.tag-choice:hover{border-color:#b8aa99;background:#fcfaf7}.tag-choice:has(input:checked){border-color:#8b7762;background:#f8f5f0}.tag-choice input{flex:0 0 17px;width:17px;height:17px;margin:1px 0 0;accent-color:#665849}.tag-choice input:focus-visible{outline:2px solid #8b7762;outline-offset:3px}.work-tag-picker{display:grid;gap:12px}.work-tag-group{border:1px solid #e6dfd3;background:#f8f5f0}.work-tag-group summary{padding:12px 14px;color:#665849;font-size:12px;font-weight:700;cursor:pointer}.work-tag-group[open] summary{border-bottom:1px solid #e6dfd3}.work-tag-group .tag-choice-grid{padding:12px}.project-tag-list{padding:8px 10px;border-left:2px solid #b8aa99;background:#f8f5f0}</style></head><body><main class="wrap"><header class="top"><div><p class="muted">AA Space Design</p><h1>AA Dashboard</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
 <?php $isEditingProject = !empty($editingProject); ?>
 <section class="project-manager">
   <div>
@@ -369,14 +418,29 @@ function whatsapp_url(string $phone, string $name): string {
       <input type="hidden" name="id" value="<?= (int)$editingProject['id'] ?>">
     <?php endif; ?>
     <input type="hidden" name="csrf_token" value="<?= h($csrfToken) ?>">
-    <label class="field">Client tag
-      <select name="client_id" <?= $isEditingProject ? '' : 'required' ?>>
-        <option value="" <?= (!$isEditingProject || empty($editingProject['client_id'])) ? 'selected' : '' ?> <?= $isEditingProject ? '' : 'disabled' ?>><?= $isEditingProject ? 'Unassigned' : 'Select a client' ?></option>
+    <fieldset class="tag-picker" aria-describedby="client-tags-help">
+      <legend>Client tags</legend>
+      <p id="client-tags-help" class="muted tag-picker-help">Choose one or more clients. Add new names above.</p>
+      <?php if ($clientRows): ?><div class="tag-choice-grid">
         <?php foreach ($clientRows as $client): ?>
-          <option value="<?= (int)$client['id'] ?>" <?= $isEditingProject && (int)$editingProject['client_id'] === (int)$client['id'] ? 'selected' : '' ?>><?= h((string)$client['name']) ?></option>
+          <label class="tag-choice"><input type="checkbox" name="client_ids[]" value="<?= (int)$client['id'] ?>" <?= in_array((int)$client['id'], $selectedClientIds, true) ? 'checked' : '' ?>><span><?= h((string)$client['name']) ?></span></label>
         <?php endforeach; ?>
-      </select>
-    </label>
+      </div><?php else: ?><p class="muted">Add a client tag before publishing a project.</p><?php endif; ?>
+    </fieldset>
+    <fieldset class="tag-picker work-tag-picker" aria-describedby="work-tags-help">
+      <legend>Work-type tags</legend>
+      <p id="work-tags-help" class="muted tag-picker-help">Choose every service that applies. Leave all unchecked if not confirmed.</p>
+      <?php foreach ($workTagGroups as $group): ?>
+        <details class="work-tag-group" open>
+          <summary><?= h((string)$group['label']) ?></summary>
+          <div class="tag-choice-grid">
+            <?php foreach ($group['tags'] as $workTag): ?>
+              <label class="tag-choice"><input type="checkbox" name="work_tag_ids[]" value="<?= (int)$workTag['id'] ?>" <?= in_array((int)$workTag['id'], $selectedWorkTagIds, true) ? 'checked' : '' ?>><span><?= h((string)$workTag['name']) ?></span></label>
+            <?php endforeach; ?>
+          </div>
+        </details>
+      <?php endforeach; ?>
+    </fieldset>
     <label class="field">Title<input name="title" required maxlength="180" placeholder="Example: Karachi office fit-out" value="<?= h((string)($editingProject['title'] ?? '')) ?>"></label>
     <?php $featuredOrderValue = $isEditingProject ? (string)($editingProject['featured_order'] ?? '') : (string)($_POST['featured_order'] ?? ''); ?>
     <div class="project-date-featured-grid">
@@ -450,10 +514,11 @@ function whatsapp_url(string $phone, string $name): string {
             <?php endif; ?>
             <div class="project-row-copy">
               <div class="project-row-title"><strong><?= h((string)$project['title']) ?></strong><span class="portfolio-slot-tag"><?= !empty($project['featured_order']) ? 'Portfolio ' . (int)$project['featured_order'] : 'Not featured' ?></span></div>
-              <span><?= h((string)($project['client_name'] ?? 'Unassigned')) ?> · <?= h((string)$project['month']) ?>/<?= h((string)$project['year']) ?> · <?= h((string)$project['status']) ?></span>
+              <span><?= h((string)($project['client_names'] ?: ($project['client_name'] ?? 'Unassigned'))) ?> · <?= h((string)$project['month']) ?>/<?= h((string)$project['year']) ?> · <?= h((string)$project['status']) ?></span>
             </div>
             <a class="edit-project" href="?tab=projects&amp;edit_project=<?= (int)$project['id'] ?>" aria-label="Edit <?= h((string)$project['title']) ?>">Edit</a>
           </div>
+          <?php if (!empty($project['work_tag_names'])): ?><p class="project-tag-list"><strong>Work tags:</strong> <?= h((string)$project['work_tag_names']) ?></p><?php endif; ?>
           <p><?= h((string)$project['description']) ?></p>
         </article>
       <?php endforeach; ?>

@@ -5,9 +5,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=60');
 try {
     $statement = database()->query(
-        "SELECT c.id, c.name, c.slug, COUNT(p.id) AS project_count
+        "SELECT c.id, c.name, c.slug, COUNT(DISTINCT p.id) AS project_count
          FROM clients c
-         LEFT JOIN projects p ON p.client_id = c.id AND p.status = 'Published'
+         LEFT JOIN project_clients pc ON pc.client_id = c.id
+         LEFT JOIN projects p ON p.id = pc.project_id AND p.status = 'Published'
          GROUP BY c.id, c.name, c.slug
          ORDER BY c.id ASC"
     );
