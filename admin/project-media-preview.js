@@ -15,6 +15,11 @@ export function getDriveThumbnailUrl(url) {
   return id ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w640` : ''
 }
 
+export function getProjectThumbnailUrl(url) {
+  const source = String(url ?? '').trim()
+  return getDriveThumbnailUrl(source) || source
+}
+
 export function getDriveVideoPreviewUrl(url) {
   const id = getDriveFileId(url)
   if (!id) return ''
@@ -189,7 +194,12 @@ function initializeProjectListThumbnails() {
       image.hidden = true
       if (fallback) fallback.hidden = false
     }, { once: true })
-    image.src = getDriveThumbnailUrl(source) || source
+    const thumbnailUrl = getProjectThumbnailUrl(source)
+    if (image.getAttribute('src') !== thumbnailUrl) image.src = thumbnailUrl
+    if (image.complete && image.naturalWidth === 0) {
+      image.hidden = true
+      if (fallback) fallback.hidden = false
+    }
   })
 }
 

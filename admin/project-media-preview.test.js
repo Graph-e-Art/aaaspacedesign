@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getDriveFileId, getDriveThumbnailUrl, getDriveVideoPreviewUrl } from './project-media-preview.js'
+import { getDriveFileId, getDriveThumbnailUrl, getDriveVideoPreviewUrl, getProjectThumbnailUrl } from './project-media-preview.js'
 
 test('reads a file ID from a standard Google Drive share URL', () => {
   assert.equal(getDriveFileId('https://drive.google.com/file/d/abc123/view?usp=sharing'), 'abc123')
@@ -18,6 +18,17 @@ test('builds a Drive thumbnail URL for image previews', () => {
   assert.equal(
     getDriveThumbnailUrl('https://drive.google.com/file/d/abc123/view'),
     'https://drive.google.com/thumbnail?id=abc123&sz=w640',
+  )
+})
+
+test('normalizes Drive project thumbnails and preserves direct image URLs', () => {
+  assert.equal(
+    getProjectThumbnailUrl('https://drive.google.com/open?id=abc123'),
+    'https://drive.google.com/thumbnail?id=abc123&sz=w640',
+  )
+  assert.equal(
+    getProjectThumbnailUrl('https://images.example.com/project.jpg'),
+    'https://images.example.com/project.jpg',
   )
 })
 
