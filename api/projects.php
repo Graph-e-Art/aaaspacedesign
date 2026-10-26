@@ -9,6 +9,7 @@ try {
     $year = filter_input(INPUT_GET, 'year', FILTER_VALIDATE_INT);
     $month = filter_input(INPUT_GET, 'month', FILTER_VALIDATE_INT);
     $clientId = filter_input(INPUT_GET, 'client_id', FILTER_VALIDATE_INT);
+    $workTagId = filter_input(INPUT_GET, 'work_tag_id', FILTER_VALIDATE_INT);
     $featuredOnly = (($_GET['featured'] ?? '') === '1');
     $limit = min(max((int)($_GET['limit'] ?? 100), 1), 100);
     $offset = min(max((int)($_GET['offset'] ?? 0), 0), 1000000);
@@ -17,6 +18,7 @@ try {
     if ($year) { $where[] = 'p.year = :year'; $params[':year'] = $year; }
     if ($month) { $where[] = 'p.month = :month'; $params[':month'] = $month; }
     if ($clientId) { $where[] = 'EXISTS (SELECT 1 FROM project_clients pc WHERE pc.project_id = p.id AND pc.client_id = :client_id)'; $params[':client_id'] = $clientId; }
+    if ($workTagId) { $where[] = 'EXISTS (SELECT 1 FROM project_work_tags pwt_filter WHERE pwt_filter.project_id = p.id AND pwt_filter.work_tag_id = :work_tag_id)'; $params[':work_tag_id'] = $workTagId; }
     if ($featuredOnly) { $where[] = 'p.featured_order BETWEEN 1 AND 5'; }
     $orderBy = $featuredOnly ? 'p.featured_order ASC' : 'p.year DESC, p.month DESC, p.id DESC';
     $countStatement = $pdo->prepare('SELECT COUNT(*) FROM projects p WHERE ' . implode(' AND ', $where));

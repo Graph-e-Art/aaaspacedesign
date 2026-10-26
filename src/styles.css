@@ -1432,3 +1432,40 @@
   }
   .project-thumbnail-slide.is-current { opacity: 1; transform: none; }
 }
+
+
+/* Project archive: cards open the shared media viewer; work tags reveal related projects. */
+.all-projects-project{overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.all-projects-project:hover{transform:translateY(-3px);border-color:#8a5a44;box-shadow:0 12px 28px #24232114}
+.all-projects-project-trigger{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.all-projects-project-trigger:focus-visible{outline:3px solid #8a5a44;outline-offset:-3px}
+.all-projects-card-thumbnail,.all-projects-card-placeholder{position:relative;display:block;width:100%;height:230px;overflow:hidden;background:#e7dfd5}
+.all-projects-card-thumbnail .project-thumbnail-mosaic{position:absolute;inset:0}
+.all-projects-card-thumbnail .project-thumbnail-empty{position:absolute;inset:0}
+.all-projects-card-placeholder{display:grid;place-items:center;align-content:center;gap:8px;color:#8a5a44}
+.all-projects-card-placeholder strong{font-size:56px;font-weight:500;line-height:1}
+.all-projects-card-placeholder>span{font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.all-projects-project-copy{display:grid;gap:10px;padding:18px}
+.all-projects-project-meta{color:#8a5a44;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.all-projects-project-copy>strong{font-size:20px;line-height:1.1}
+.all-projects-project-description{display:-webkit-box;overflow:hidden;color:#625c57;font-size:12px;line-height:1.6;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.all-projects-open-label{display:inline-flex;align-items:center;gap:6px;margin-top:4px;color:#8a5a44;font-size:11px;font-weight:700}
+.all-projects-project-trigger:hover .all-projects-open-label{color:#242321}
+.dynamic-project-work-tags li{padding:0;border:0;background:transparent}
+.dynamic-project-work-tags li button{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:6px 9px;border:1px solid #ded8d2;background:#faf8f5;color:#625c57;font:inherit;font-size:11px;line-height:1.35;cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease}
+.dynamic-project-work-tags li button:hover{border-color:#8a5a44;background:#8a5a44;color:#fff}
+.dynamic-project-work-tags li button:focus-visible{outline:2px solid #8a5a44;outline-offset:2px}
+.dynamic-project-empty{display:grid;place-items:center;width:100%;height:100%;color:#625c57;font-size:13px}
+.work-tag-projects-lightbox{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:22px;background:rgba(28,28,28,.76);overflow:auto}
+.work-tag-projects-panel{width:min(1040px,100%);max-height:calc(100dvh - 44px);overflow:auto;padding:32px;background:#fbfaf7;box-shadow:0 18px 55px #0006}
+.work-tag-projects-panel .client-projects-header{align-items:flex-start}
+.work-tag-projects-panel .client-projects-header h2{overflow-wrap:anywhere}
+.work-tag-projects-panel .client-projects-header .lightbox-close-button{width:40px;min-width:40px;height:40px;min-height:40px;padding:0}
+.work-tag-projects-panel .client-projects-grid{padding-bottom:4px}
+.work-tag-project-card{width:100%;font:inherit}
+.work-tag-project-thumb{position:relative;display:block;min-height:180px;overflow:hidden;background:#e7dfd5}
+.work-tag-project-thumb .project-thumbnail-mosaic,.work-tag-project-thumb .project-thumbnail-empty{position:absolute;inset:0;width:100%;height:100%}
+.work-tag-projects-panel .all-projects-load-more{margin:26px 0 0}
+@media(max-width:700px){.work-tag-projects-panel{padding:24px}}
+@media(max-width:560px){.all-projects-card-thumbnail,.all-projects-card-placeholder{height:230px}.work-tag-projects-lightbox{place-items:stretch;padding:0}.work-tag-projects-panel{width:100%;max-height:none;min-height:100dvh;padding:20px}.work-tag-projects-panel .client-projects-header{gap:12px}.work-tag-project-card{grid-template-columns:110px minmax(0,1fr);min-height:155px}.work-tag-project-thumb{min-height:155px}.work-tag-project-card .client-project-card-copy{padding:12px}.work-tag-project-card .client-project-card-copy strong{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.all-projects-project{transition:none}.all-projects-project:hover{transform:none}.dynamic-project-work-tags li button{transition:none}}
