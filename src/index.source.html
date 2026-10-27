@@ -12,10 +12,31 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" as="image" href="/assets/media/aa-associate-hero-poster.jpg" fetchpriority="high" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
+    <style>
+      .site-boot{min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:2rem;background:#fff;color:#1c1c1c;font:16px/1.5 Inter,Arial,sans-serif;text-align:center}
+      .site-boot-content{max-width:32rem}
+      .site-boot h1{margin:0 0 1rem;font-size:clamp(2rem,8vw,3.5rem);letter-spacing:-.06em}
+      .site-boot p{margin:.5rem 0;color:#535353}
+      .site-boot-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.25rem}
+      .site-boot-actions a{min-height:44px;display:inline-flex;align-items:center;padding:.7rem 1rem;background:#1c1c1c;color:#fff;text-decoration:none;border-radius:3px;font-size:.9rem;font-weight:600}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="site-boot" aria-labelledby="site-boot-title">
+        <div class="site-boot-content">
+          <h1 id="site-boot-title">AA Associate</h1>
+          <p role="status">Loading our website. If it does not open, contact us directly.</p>
+          <div class="site-boot-actions">
+            <a href="https://wa.me/923009233163">WhatsApp</a>
+            <a href="tel:+923009233163">Call +92 300 9233163</a>
+          </div>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
