@@ -23,11 +23,19 @@ function projectDate(project) {
 }
 
 export default function ProjectsArchivePage() {
+  const urlParams = new URLSearchParams(window.location.search)
+  const activeWorkTagId = urlParams.get('work_tag_id') || ''
+  const activeClientId = urlParams.get('client_id') || ''
   const [projects, setProjects] = useState([])
   const [years, setYears] = useState([])
   const [months, setMonths] = useState([])
+  const [clients, setClients] = useState([])
+  const [workTags, setWorkTags] = useState([])
   const [year, setYear] = useState('')
   const [month, setMonth] = useState('')
+  const [clientId, setClientId] = useState(activeClientId)
+  const [workTagId, setWorkTagId] = useState(activeWorkTagId)
+  const [filterError, setFilterError] = useState('')
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -41,16 +49,32 @@ export default function ProjectsArchivePage() {
   const [tagLoadingMore, setTagLoadingMore] = useState(false)
   const [tagError, setTagError] = useState('')
   const [galleryPaused, setGalleryPaused] = useState(false)
-  const activeWorkTagId = new URLSearchParams(window.location.search).get('work_tag_id') || ''
-  const activeClientId = new URLSearchParams(window.location.search).get('client_id') || ''
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/project-filters.php', { signal: controller.signal })
+      .then(async (response) => {
+        const result = await response.json().catch(() => null)
+        if (!response.ok || !result?.ok) throw new Error(result?.message || 'Project filters unavailable.')
+        return result
+      })
+      .then((result) => {
+        setClients(result.clients || [])
+        setWorkTags(result.work_tags || [])
+      })
+      .catch((loadError) => {
+        if (loadError.name !== 'AbortError') setFilterError(loadError.message || 'Project filters unavailable.')
+      })
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
     const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: '0' })
     if (year) query.set('year', year)
     if (month) query.set('month', month)
-    if (activeWorkTagId) query.set('work_tag_id', activeWorkTagId)
-    if (activeClientId) query.set('client_id', activeClientId)
+    if (workTagId) query.set('work_tag_id', workTagId)
+    if (clientId) query.set('client_id', clientId)
 
     setLoading(true)
     setError('')
@@ -76,7 +100,7 @@ export default function ProjectsArchivePage() {
       })
 
     return () => controller.abort()
-  }, [year, month, activeWorkTagId, activeClientId])
+  }, [year, month, workTagId, clientId])
 
   useEffect(() => {
     if (!selectedProject || galleryPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
@@ -112,6 +136,8 @@ export default function ProjectsArchivePage() {
     const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(projects.length) })
     if (year) query.set('year', year)
     if (month) query.set('month', month)
+    if (workTagId) query.set('work_tag_id', workTagId)
+    if (clientId) query.set('client_id', clientId)
     try {
       const response = await fetch(`/api/projects.php?${query.toString()}`)
       const result = await response.json().catch(() => null)
@@ -178,7 +204,7 @@ export default function ProjectsArchivePage() {
         <a className="all-projects-home-link" href="/">Back to home <ArrowUpRight size={15} /></a>
       </header>
       <main className="all-projects-main">
-        <p className="eyebrow">AA ASSOCIATE / PORTFOLIO</p>
+        <p className="eyebrow all-projects-breadcrumb"><span>AA ASSOCIATE</span><span aria-hidden="true">&gt;</span><span>ALL PROJECTS</span></p>
         <div className="all-projects-title-row">
           <div>
             <h1>Projects, in full.</h1>
@@ -189,7 +215,10 @@ export default function ProjectsArchivePage() {
         <div className="archive-filters all-projects-filters">
           <label>Year<select value={year} onChange={(event) => setYear(event.target.value)}><option value="">All years</option>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
           <label>Month<select value={month} onChange={(event) => setMonth(event.target.value)}><option value="">All months</option>{months.map((item) => <option key={item} value={item}>{new Date(2000, item - 1, 1).toLocaleString('en', { month: 'long' })}</option>)}</select></label>
+          <label>Client tag<select value={clientId} onChange={(event) => setClientId(event.target.value)}><option value="">All clients</option>{clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label>Work tag<select value={workTagId} onChange={(event) => setWorkTagId(event.target.value)}><option value="">All work tags</option>{workTags.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         </div>
+        {filterError && <p className="archive-error" role="status">{filterError}</p>}
         {loading ? <p className="archive-status" role="status">Loading projects…</p> : error && !projects.length ? <p className="archive-status archive-error" role="alert">{error}</p> : projects.length ? <>
           <div className="archive-grid all-projects-grid">
             {projects.map((project) => {
@@ -219,11 +248,11 @@ export default function ProjectsArchivePage() {
         const moveMedia = (direction) => setSelectedMedia((index) => (index + direction + media.length) % media.length)
         return <div className="dynamic-project-lightbox" role="dialog" aria-modal="true" aria-labelledby="archive-project-title" onClick={() => setSelectedProject(null)}>
           <div className="dynamic-project-panel" onClick={(event) => event.stopPropagation()}>
-            <div className="dynamic-project-header"><button type="button" className="lightbox-close-button" onClick={() => setSelectedProject(null)} aria-label="Close project gallery"><X size={16} /></button></div>
+            <div className="dynamic-project-header"><span className="dynamic-project-brand">AA Associate</span><button type="button" className="lightbox-close-button" onClick={() => setSelectedProject(null)} aria-label="Close project gallery"><X size={16} /></button></div>
             <div className="dynamic-project-body">
               <div className="dynamic-project-gallery" onMouseEnter={() => setGalleryPaused(true)} onMouseLeave={() => setGalleryPaused(false)} onFocusCapture={() => setGalleryPaused(true)} onBlurCapture={() => setGalleryPaused(false)}>
                 <div className="dynamic-project-viewer">
-                  {currentMedia?.type === 'drive' ? <iframe src={mediaHref(currentMedia)} title={currentMedia.label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /> : currentMedia?.url ? <img src={currentMedia.url} alt={currentMedia.label || selectedProject.title} /> : <span className="dynamic-project-empty">Project media will be added soon.</span>}
+                  {currentMedia?.type === 'drive' ? <iframe src={mediaHref(currentMedia)} title={currentMedia.label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /> : currentMedia?.url ? <img key={`${selectedProject.id}-${selectedMedia}`} src={currentMedia.url} alt={currentMedia.label || selectedProject.title} /> : <span className="dynamic-project-empty">Project media will be added soon.</span>}
                   {media.length > 1 && <>
                     <button type="button" className="dynamic-project-nav dynamic-project-nav-prev" onClick={() => moveMedia(-1)} aria-label="Previous project media"><ChevronLeft size={24} /></button>
                     <button type="button" className="dynamic-project-nav dynamic-project-nav-next" onClick={() => moveMedia(1)} aria-label="Next project media"><ChevronRight size={24} /></button>
@@ -235,7 +264,7 @@ export default function ProjectsArchivePage() {
                 </div>
               </div>
               <aside className="dynamic-project-details">
-                <h2 id="archive-project-title"><a href={`/projects.html?project_id=${selectedProject.id}`}>{selectedProject.title}</a></h2>
+                <h2 id="archive-project-title">{selectedProject.title}</h2>
                 {selectedProject.client_name && <p className="dynamic-project-client-link"><a href={`/projects.html?client_id=${selectedProject.client_id}`}>{selectedProject.client_name} <ArrowUpRight size={13}/></a></p>}
                 <p>{selectedProject.description}</p>
                 {selectedProject.work_tags?.length > 0 && <div className="dynamic-project-work-tags">

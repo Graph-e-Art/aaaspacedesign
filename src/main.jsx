@@ -245,6 +245,7 @@ function App(){
       <div className="dynamic-project-lightbox" role="dialog" aria-modal="true" aria-labelledby="dynamic-project-title" onClick={closeDynamicProject}>
         <div className="dynamic-project-panel" onClick={event => event.stopPropagation()}>
           <div className="dynamic-project-header">
+            <span className="dynamic-project-brand">AA Associate</span>
             <button type="button" className="lightbox-close-button" onClick={closeDynamicProject} aria-label="Close project preview">
               <X size={16}/>
             </button>
@@ -254,7 +255,7 @@ function App(){
               <div className="dynamic-project-viewer">
                 {mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.type === 'drive' ?
                   <iframe src={driveEmbed(mediaFor(selectedDynamicProject)[selectedDynamicMedia].url)} title={mediaFor(selectedDynamicProject)[selectedDynamicMedia].label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/> :
-                  <img src={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.url} alt={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.label || selectedDynamicProject.title}/>
+                  <img key={`${selectedDynamicProject.id}-${selectedDynamicMedia}`} src={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.url} alt={mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.label || selectedDynamicProject.title}/>
                 }
                 {mediaFor(selectedDynamicProject).length > 1 && <>
                   <button type="button" className="dynamic-project-nav dynamic-project-nav-prev" onClick={() => setSelectedDynamicMedia(index => (index - 1 + mediaFor(selectedDynamicProject).length) % mediaFor(selectedDynamicProject).length)} aria-label="Previous project media"><ChevronLeft size={24}/></button>
@@ -270,7 +271,7 @@ function App(){
               </div>
             </div>
             <aside className="dynamic-project-details">
-              <h2 id="dynamic-project-title"><a href="/projects.html">{selectedDynamicProject.title}</a></h2>
+              <h2 id="dynamic-project-title">{selectedDynamicProject.title}</h2>
               {selectedDynamicProject.client_name && <p className="dynamic-project-client-link"><button type="button" onClick={()=>openClientProjects({id:selectedDynamicProject.client_id,name:selectedDynamicProject.client_name,project_count:0})}>{selectedDynamicProject.client_name} <ArrowUpRight size={13}/></button></p>}
               <p>{selectedDynamicProject.description}</p>
               {Array.isArray(selectedDynamicProject.work_tags) && selectedDynamicProject.work_tags.length > 0 && (

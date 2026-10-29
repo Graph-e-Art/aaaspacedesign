@@ -1704,3 +1704,23 @@
   .dynamic-project-thumbnails button img,
   .dynamic-project-video-thumb { width: 84px; height: 50px; }
 }
+
+
+/* Archive filters and project-gallery brand accents. */
+.all-projects-breadcrumb{display:flex;align-items:center;gap:12px;color:#625c57}
+.all-projects-breadcrumb span:first-child{color:#8a5a44;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em}
+.all-projects-breadcrumb span:nth-child(2){color:#a79c91;font-size:13px}
+.all-projects-breadcrumb span:last-child{color:#625c57;font-size:11px;font-weight:500;letter-spacing:.12em}
+.all-projects-title-row h1{font-size:clamp(34px,4.2vw,50px);letter-spacing:-.045em}
+.all-projects-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.all-projects-filters label{min-width:0}
+.all-projects-filters select{width:100%;min-width:0;min-height:44px}
+.dynamic-project-header{align-items:center;justify-content:space-between}
+.dynamic-project-header .lightbox-close-button{align-self:center;margin-top:0}
+.dynamic-project-brand{color:#96938f;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:500;letter-spacing:.1em}
+.dynamic-project-details #dynamic-project-title{cursor:default}
+.dynamic-project-viewer img{animation:dynamic-project-gallery-zoom 1.8s cubic-bezier(.22,.8,.24,1) both}
+@keyframes dynamic-project-gallery-zoom{from{opacity:.9;transform:scale(1)}to{opacity:1;transform:scale(1.025)}}
+@media(max-width:900px){.all-projects-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.all-projects-title-row h1{font-size:clamp(32px,8vw,38px)}.all-projects-filters{grid-template-columns:1fr;gap:10px}.all-projects-breadcrumb{gap:9px}.dynamic-project-brand{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.dynamic-project-viewer img{animation:none}}
