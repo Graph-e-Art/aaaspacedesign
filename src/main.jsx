@@ -77,6 +77,7 @@ function App(){
   const [archiveError,setArchiveError]=useState('')
   const [selectedDynamicProject,setSelectedDynamicProject]=useState(null)
   const [selectedDynamicMedia,setSelectedDynamicMedia]=useState(0)
+  const [dynamicGalleryPaused,setDynamicGalleryPaused]=useState(false)
   const scrollTo=(id)=>{ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); setMenuOpen(false) }
   const openProject=(project)=>{ setSelectedProject(project); setSelectedImage(0) }
   const closeProject=()=>{ setSelectedProject(null); setSelectedImage(0) }
@@ -84,12 +85,12 @@ function App(){
   const closeVideoGallery=()=>{ setSelectedVideoCategory(null); setSelectedVideo(0) }
   const closeArchive=()=>setArchiveOpen(false)
   const closeClientProjects=()=>{setSelectedClient(null);setClientProjects([]);setClientProjectsError('')}
-  const openClientProjects=async(client)=>{setSelectedClient(client);setClientProjects([]);setClientProjectsError('');setClientProjectsLoading(true);try{if(!client.id)throw new Error('Run the client-tag database migration to load project records.');const result=await fetchProjects('','',100,client.id);setClientProjects(result.projects||[])}catch(error){setClientProjectsError(error.message||'Client projects could not be loaded.')}finally{setClientProjectsLoading(false)}}
-  const openDynamicProject=(project)=>{setSelectedClient(null);setSelectedDynamicProject(project);setSelectedDynamicMedia(0)}
+  const openClientProjects=async(client)=>{setSelectedDynamicProject(null);setSelectedClient(client);setClientProjects([]);setClientProjectsError('');setClientProjectsLoading(true);try{if(!client.id)throw new Error('Run the client-tag database migration to load project records.');const result=await fetchProjects('','',100,client.id);setClientProjects(result.projects||[])}catch(error){setClientProjectsError(error.message||'Client projects could not be loaded.')}finally{setClientProjectsLoading(false)}}
+  const openDynamicProject=(project)=>{setSelectedClient(null);setSelectedDynamicProject(project);setSelectedDynamicMedia(0);setDynamicGalleryPaused(false)}
   const closeDynamicProject=()=>{setSelectedDynamicProject(null);setSelectedDynamicMedia(0)}
   const openContact=()=>{setPreferredCallDefaults(getLocalCallDefaults());setContactOpen(true);setMenuOpen(false)}
   const closeContact=()=>setContactOpen(false)
-  const driveEmbed=(url)=>url.includes('/file/d/')?url.replace(/\/view(?:\?.*)?$/,'/preview'):url
+  const driveEmbed=(url)=>{const embed=url.includes('/file/d/')?url.replace(/\/view(?:\?.*)?$/,'/preview'):url;return embed.includes('?')?`${embed}&autoplay=1`:`${embed}?autoplay=1`}
   const mediaFor=(project)=>{const media=Array.isArray(project.media)?project.media:[];const cover=project.image_url&&!media.some(item=>item.type==='image'&&item.url===project.image_url)?[{type:'image',url:project.image_url,label:'Project cover'}]:[];return [...cover,...(media.length?media:[...(project.embed_url?[{type:'drive',url:project.embed_url,label:null}]:[])])].map(item=>item.type==='image'?{...item,url:normalizeProjectImageUrl(item.url)}:item)}
   const imageFor=(project)=>projectImageSources(project,1)[0] || ''
   const fetchProjects=async (year='',month='',limit=100,clientId='',featuredOnly=false)=>{
@@ -104,6 +105,12 @@ function App(){
   useEffect(()=>{ const onScroll=()=>setScrolled(window.scrollY>12); onScroll(); window.addEventListener('scroll',onScroll,{passive:true}); return()=>window.removeEventListener('scroll',onScroll) },[])
   useEffect(()=>{if(window.location.pathname==='/projects.html')return;fetchProjects('', '', 5, '', true).then(result=>setCurrentProjects(result.projects||[])).catch(()=>setCurrentProjects([]));fetch('/api/clients.php').then(response=>response.json()).then(result=>{if(result.ok&&Array.isArray(result.clients))setClients(result.clients)}).catch(()=>{}) },[])
   useEffect(()=>{ if(window.location.pathname==='/projects.html'||window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; const timer=window.setInterval(()=>setHeroSlide(slide=>(slide+1)%3),6500); return()=>window.clearInterval(timer) },[])
+  useEffect(()=>{
+    const media=selectedDynamicProject?mediaFor(selectedDynamicProject):[]
+    if(!selectedDynamicProject||media.length<2||dynamicGalleryPaused||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return
+    const timer=window.setInterval(()=>setSelectedDynamicMedia(index=>(index+1)%media.length),5000)
+    return()=>window.clearInterval(timer)
+  },[selectedDynamicProject,dynamicGalleryPaused])
   const featuredProjects=currentProjects.filter(project=>project.featured_order!=null).sort((a,b)=>a.featured_order-b.featured_order).slice(0,5)
   const clientRows=[clients.slice(0,8),clients.slice(8,16),clients.slice(16)]
   const heroSlides=[{number:'01',title:'Custom sofas, made for your space.',description:'From first sketch to final stitch, we make sofas and furniture that belong in the room.',image:'drive-gallery/selected/carpentry-detail.jpg',alt:'Crafted seating and joinery detail'},{number:'02',title:'Furniture that completes the interior.',description:'A coordinated approach to sofas, woodwork, partitions and the details around them.',image:'drive-gallery/selected/commercial-interior.jpg',alt:'Commercial interior with furniture work'},{number:'03',title:'Interior work with a furniture-first eye.',description:'Thoughtful planning, reliable execution and custom pieces for homes, offices and commercial spaces.',image:'drive-gallery/selected/turnkey-01.jpg',alt:'Turnkey interior project'}]
@@ -189,7 +196,7 @@ function App(){
         <div className="hero-copy reveal">
           <h1 id="hero-title">{heroSlides[heroSlide].title}</h1>
           <p className="lead">{heroSlides[heroSlide].description}</p>
-          <div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('projects')}>See more works <ArrowUpRight size={18}/></button><button className="text-link" onClick={()=>openContact()}>Start a project <ArrowUpRight size={18}/></button></div>
+          <div className="hero-actions"><button className="button dark" onClick={()=>scrollTo('projects')}>See more works <ArrowUpRight size={18}/></button><button className="text-link highlight-link" onClick={()=>openContact()}>Start a project <ArrowUpRight size={18}/></button></div>
         </div>
         <div className="hero-background-media" aria-hidden="true"><video autoPlay={HERO_VIDEO_ENABLED} muted loop playsInline preload={HERO_VIDEO_ENABLED?'metadata':'none'} poster={A+'media/aa-associate-hero-poster.jpg'}><source src={A+'media/aa-associate-hero.webm'} type="video/webm"/><source src={A+'media/aa-associate-hero.mp4'} type="video/mp4"/></video></div>
       </section>
@@ -209,8 +216,8 @@ function App(){
         </div>
         <div id="projects-content" className="projects-content" hidden={!projectsExpanded}>
           <div className="projects-intro-row">
-            <p>Five featured projects selected from the AA Dashboard. Open a project to view its images and video.</p>
-            <button className="text-link" onClick={() => openContact()}>Discuss your space <ArrowUpRight size={16}/></button>
+            <p>A considered portfolio of interior spaces, crafted details and finished environments—each project shaped around the people who use it.</p>
+            <button className="text-link highlight-link" onClick={() => openContact()}>Discuss your space <ArrowUpRight size={16}/></button>
           </div>
           <div className="gallery-grid preview-gallery portfolio-gallery">
             {featuredProjects.map(project => (
@@ -243,7 +250,7 @@ function App(){
             </button>
           </div>
           <div className="dynamic-project-body">
-            <div className="dynamic-project-gallery">
+            <div className="dynamic-project-gallery" onMouseEnter={()=>setDynamicGalleryPaused(true)} onMouseLeave={()=>setDynamicGalleryPaused(false)} onFocusCapture={()=>setDynamicGalleryPaused(true)} onBlurCapture={()=>setDynamicGalleryPaused(false)}>
               <div className="dynamic-project-viewer">
                 {mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.type === 'drive' ?
                   <iframe src={driveEmbed(mediaFor(selectedDynamicProject)[selectedDynamicMedia].url)} title={mediaFor(selectedDynamicProject)[selectedDynamicMedia].label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/> :
@@ -258,15 +265,19 @@ function App(){
                 <span>{mediaFor(selectedDynamicProject)[selectedDynamicMedia]?.label || 'Project media'}</span>
                 <span>{selectedDynamicMedia + 1} / {mediaFor(selectedDynamicProject).length}</span>
               </div>
+              <div className="dynamic-project-thumbnails" aria-label="All project media">
+                {mediaFor(selectedDynamicProject).map((media, index) => <button type="button" className={index === selectedDynamicMedia ? 'selected' : ''} onClick={() => setSelectedDynamicMedia(index)} key={`${media.url}-${index}`}>{media.type === 'image' ? <img src={media.url} alt="" loading="lazy" /> : <span className="dynamic-project-video-thumb"><Play size={16}/></span>}<span>{media.type === 'drive' ? 'Video URL' : 'Image URL'}</span><small>{media.label || `Media ${index + 1}`}</small></button>)}
+              </div>
             </div>
             <aside className="dynamic-project-details">
-              <h2 id="dynamic-project-title">{selectedDynamicProject.title}</h2>
+              <h2 id="dynamic-project-title"><a href="/projects.html">{selectedDynamicProject.title}</a></h2>
+              {selectedDynamicProject.client_name && <p className="dynamic-project-client-link"><button type="button" onClick={()=>openClientProjects({id:selectedDynamicProject.client_id,name:selectedDynamicProject.client_name,project_count:0})}>{selectedDynamicProject.client_name} <ArrowUpRight size={13}/></button></p>}
               <p>{selectedDynamicProject.description}</p>
               {Array.isArray(selectedDynamicProject.work_tags) && selectedDynamicProject.work_tags.length > 0 && (
                 <div className="dynamic-project-work-tags">
                   <h3>Work tags</h3>
                   <ul>
-                    {selectedDynamicProject.work_tags.map(tag => <li key={tag.id ?? tag.slug ?? tag.name}>{tag.name}</li>)}
+                    {selectedDynamicProject.work_tags.map(tag => <li key={tag.id ?? tag.slug ?? tag.name}><a href={`/projects.html?work_tag_id=${encodeURIComponent(tag.id)}`}>{tag.name} <ArrowUpRight size={12}/></a></li>)}
                   </ul>
                 </div>
               )}

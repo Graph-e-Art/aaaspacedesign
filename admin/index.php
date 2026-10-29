@@ -36,7 +36,8 @@ $isAuthenticated = !empty($_SESSION['admin_authenticated']);
 if (!$isAuthenticated): ?>
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AA Dashboard login for AA Space Design project and enquiry management."><meta name="robots" content="noindex,nofollow"><title>AA Dashboard Login | AA Space Design</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(390px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 8px;font-size:28px}p{color:#736c63;line-height:1.6}.field{display:grid;gap:8px;margin:18px 0;font-weight:700;font-size:13px}input{padding:13px;border:1px solid #d8cec5;font:inherit}button{width:100%;padding:14px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.error{color:#a21d1d;font-size:13px}</style></head><body><main class="card"><p>AA Associate</p><h1>Admin login</h1><p>View and manage customer enquiries.</p><?php if (!empty($loginError)): ?><p class="error"><?= htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?><form method="post"><input type="hidden" name="action" value="login"><label class="field">Username<input name="username" required autocomplete="username"></label><label class="field">Password<input name="password" type="password" required autocomplete="current-password"></label><button type="submit">Sign in</button></form></main></body></html>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f2eb;color:#3d3a35;font:15px Arial,sans-serif}.card{width:min(390px,calc(100% - 40px));background:#fff;padding:32px;border:1px solid #e6dfd3;box-shadow:0 18px 50px #3d3a3512}h1{margin:0 0 8px;font-size:28px}p{color:#736c63;line-height:1.6}.field{display:grid;gap:8px;margin:18px 0;font-weight:700;font-size:13px}input{padding:13px;border:1px solid #d8cec5;font:inherit}button{width:100%;padding:14px;border:0;background:#3d3a35;color:#fff;font-weight:700;cursor:pointer}.error{color:#a21d1d;font-size:13px}
+</style></head><body><main class="card"><p>AA Associate</p><h1>Admin login</h1><p>View and manage customer enquiries.</p><?php if (!empty($loginError)): ?><p class="error"><?= htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?><form method="post"><input type="hidden" name="action" value="login"><label class="field">Username<input name="username" required autocomplete="username"></label><label class="field">Password<input name="password" type="password" required autocomplete="current-password"></label><button type="submit">Sign in</button></form></main></body></html>
 <?php exit; endif;
 
 $databaseError = '';
@@ -116,6 +117,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
         }
     }
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_client') {
+    $clientId = filter_var($_POST['client_id'] ?? null, FILTER_VALIDATE_INT);
+    $clientName = trim((string)($_POST['client_name'] ?? ''));
+    $clientSlug = trim((string)preg_replace('/[^a-z0-9]+/i', '-', strtolower($clientName)), '-');
+    if (!$clientId || $clientName === '' || strlen($clientName) > 180 || $clientSlug === '') {
+        $clientError = 'Enter a valid client name up to 180 characters.';
+    } else {
+        try {
+            $clientUpdate = $pdo->prepare('UPDATE clients SET name = :name, slug = :slug WHERE id = :id');
+            $clientUpdate->execute([':name' => $clientName, ':slug' => substr($clientSlug, 0, 200), ':id' => $clientId]);
+            $clientMessage = 'Client tag spelling updated.';
+        } catch (Throwable $error) {
+            $clientError = 'Client tag could not be updated. The spelling may already exist.';
+        }
+    }
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create_project') {
     $clientIdInput = trim((string)($_POST['client_id'] ?? ''));
     $clientId = $clientIdInput === '' ? null : filter_var($clientIdInput, FILTER_VALIDATE_INT);
@@ -136,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     } elseif ($featuredOrderRaw !== '' && ($featuredOrder === false || $featuredOrder < 1 || $featuredOrder > 5)) {
         $projectError = 'Choose Not featured or a Portfolio 1–5 slot.';
     } elseif (($imageUrl !== '' && !filter_var($imageUrl, FILTER_VALIDATE_URL)) || ($embedUrl !== '' && !filter_var($embedUrl, FILTER_VALIDATE_URL))) {
-        $projectError = 'Image and Google Drive links must be valid URLs.';
+        $projectError = 'Image URL and Video URL must be valid URLs.';
     } else {
         try {
             if (!tag_ids_exist($pdo, 'clients', $clientIds) || !tag_ids_exist($pdo, 'work_tags', $workTagIds)) {
@@ -213,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     } elseif ($featuredOrder !== null && $status !== 'Published') {
         $projectError = 'Only published projects can use a Portfolio slot.';
     } elseif (($imageUrl !== '' && (!filter_var($imageUrl, FILTER_VALIDATE_URL) || strlen($imageUrl) > 1000)) || ($embedUrl !== '' && (!filter_var($embedUrl, FILTER_VALIDATE_URL) || strlen($embedUrl) > 1000))) {
-        $projectError = 'Image and Google Drive links must be valid URLs under 1,000 characters.';
+        $projectError = 'Image URL and Video URL must be valid URLs under 1,000 characters.';
     } else {
         $mediaItems = [];
         foreach ($mediaUrls as $index => $mediaUrl) {
@@ -455,7 +472,7 @@ function whatsapp_url(string $phone, string $name): string {
 .work-tag-dropdown-panel .tag-choice-grid{gap:5px;padding:6px}
 .work-tag-picker .tag-choice{min-height:32px;gap:8px;padding:6px 9px;line-height:1.25}
 @media(max-width:650px){.dashboard-tabs a{flex:1;justify-content:center}.client-tag-row{grid-template-columns:1fr;gap:10px}.client-tag-row .client-tag-form{grid-template-columns:minmax(0,1fr) auto}.client-tag-row>.field{padding:14px}.client-tag-row .client-tag-form button{width:auto}}
-</style></head><body><main class="wrap"><header class="top"><div><p class="muted">AA Space Design</p><h1>AA Dashboard</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
+</style><style>.client-edit-list{display:grid;gap:8px;margin:0 0 18px;padding:14px;background:#f8f5f0;border:1px solid #e6dfd3}.client-edit-list>strong{color:#665849;font-size:12px}.client-edit-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.client-edit-row input{min-width:0;padding:9px;border:1px solid #e6dfd3;background:#fff;font:inherit;color:#3d3a35}.client-edit-row button{padding:9px 12px;border:1px solid #d8cec5;background:#fff;color:#665849;font-weight:700;cursor:pointer}.client-edit-row button:hover{background:#665849;color:#fff}@media(max-width:650px){.client-edit-row{grid-template-columns:1fr}.client-edit-row button{width:max-content}}</style></head><body><main class="wrap"><header class="top"><div><p class="muted">AA Space Design</p><h1>AA Dashboard</h1></div><a class="logout" href="?logout=1">Log out</a></header><nav class="dashboard-tabs" aria-label="Dashboard sections"><a class="<?= $activeTab === 'messages' ? 'active' : '' ?>" href="?tab=messages">User Messages</a><a class="<?= $activeTab === 'projects' ? 'active' : '' ?>" href="?tab=projects">Projects Submit</a></nav><?php if ($activeTab === 'projects'): ?>
 <?php $isEditingProject = !empty($editingProject); ?>
 <section class="project-manager">
   <div>
@@ -481,6 +498,7 @@ function whatsapp_url(string $phone, string $name): string {
         </select>
       </label>
   </div>
+  <?php if ($clientRows): ?><div class="client-edit-list" aria-label="Edit client tag spelling"><strong>Client tag spelling</strong><?php foreach ($clientRows as $client): ?><form method="post" class="client-edit-row"><input type="hidden" name="tab" value="projects"><input type="hidden" name="action" value="update_client"><input type="hidden" name="client_id" value="<?= (int)$client['id'] ?>"><input type="text" name="client_name" value="<?= h((string)$client['name']) ?>" maxlength="180" aria-label="Client name"><button type="submit">Save spelling</button></form><?php endforeach; ?></div><?php endif; ?>
   <?php if ($projectMessage): ?><p class="success-message" role="status"><?= h($projectMessage) ?></p><?php endif; ?>
   <?php if ($projectError): ?><p class="error" role="alert"><?= h($projectError) ?></p><?php endif; ?>
   <form method="post" class="project-form" id="project-entry-form">
@@ -541,14 +559,14 @@ function whatsapp_url(string $phone, string $name): string {
       </label>
     <?php endif; ?>
     <div class="media-builder">
-      <div class="media-builder-head"><div><strong>Project media</strong><span class="muted media-builder-hint">Preview appears beside each link.</span></div><button type="button" class="add-media" data-action="add-media">+ Add image or Google Drive video</button></div>
+      <div class="media-builder-head"><div><strong>Project media</strong><span class="muted media-builder-hint">Preview appears beside each link.</span></div><button type="button" class="add-media" data-action="add-media">+ Add image URL or Video URL</button></div>
       <div id="media-rows">
         <?php $formMediaRows = $editingMediaRows ?: [['media_type' => 'image', 'url' => '', 'label' => '']]; ?>
         <?php foreach ($formMediaRows as $mediaRow): ?>
           <div class="media-row">
             <select name="media_type[]" aria-label="Media type">
-              <option value="image" <?= ($mediaRow['media_type'] ?? 'image') === 'image' ? 'selected' : '' ?>>Image</option>
-              <option value="drive" <?= ($mediaRow['media_type'] ?? '') === 'drive' ? 'selected' : '' ?>>Google Drive Video</option>
+              <option value="image" <?= ($mediaRow['media_type'] ?? 'image') === 'image' ? 'selected' : '' ?>>Image URL</option>
+              <option value="drive" <?= ($mediaRow['media_type'] ?? '') === 'drive' ? 'selected' : '' ?>>Video URL</option>
             </select>
             <div class="media-url-control">
               <input name="media_url[]" type="url" placeholder="https://..." <?= $isEditingProject ? '' : 'required' ?> aria-label="Media URL" value="<?= h((string)($mediaRow['url'] ?? '')) ?>">

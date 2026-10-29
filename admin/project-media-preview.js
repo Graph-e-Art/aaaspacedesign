@@ -64,7 +64,7 @@ function renderMediaPreview(row) {
 
   const parsed = parseHttpUrl(value)
   if (!parsed) {
-    preview.append(createPlaceholder('Enter a valid image or Drive link'))
+    preview.append(createPlaceholder('Enter a valid Image URL or Video URL'))
     return
   }
 
@@ -72,7 +72,7 @@ function renderMediaPreview(row) {
     const videoPreviewUrl = getDriveVideoPreviewUrl(parsed.toString())
     const posterUrl = getDriveThumbnailUrl(parsed.toString())
     if (!videoPreviewUrl) {
-      preview.append(createPlaceholder('Use a Google Drive video link'))
+      preview.append(createPlaceholder('Use a valid Video URL'))
       return
     }
 

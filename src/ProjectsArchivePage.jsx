@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 import ProjectThumbnail, { normalizeProjectImageUrl, projectPreviewSlides } from './ProjectThumbnail.jsx'
 
 const PAGE_SIZE = 24
@@ -14,7 +14,8 @@ function projectMedia(project) {
 function mediaHref(item) {
   if (item.type === 'image') return normalizeProjectImageUrl(item.url)
   if (item.type !== 'drive') return item.url
-  return item.url.includes('/file/d/') ? item.url.replace(/\/view(?:\?.*)?$/, '/preview') : item.url
+  const embed = item.url.includes('/file/d/') ? item.url.replace(/\/view(?:\?.*)?$/, '/preview') : item.url
+  return embed.includes('?') ? `${embed}&autoplay=1` : `${embed}?autoplay=1`
 }
 
 function projectDate(project) {
@@ -39,12 +40,17 @@ export default function ProjectsArchivePage() {
   const [tagLoading, setTagLoading] = useState(false)
   const [tagLoadingMore, setTagLoadingMore] = useState(false)
   const [tagError, setTagError] = useState('')
+  const [galleryPaused, setGalleryPaused] = useState(false)
+  const activeWorkTagId = new URLSearchParams(window.location.search).get('work_tag_id') || ''
+  const activeClientId = new URLSearchParams(window.location.search).get('client_id') || ''
 
   useEffect(() => {
     const controller = new AbortController()
     const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: '0' })
     if (year) query.set('year', year)
     if (month) query.set('month', month)
+    if (activeWorkTagId) query.set('work_tag_id', activeWorkTagId)
+    if (activeClientId) query.set('client_id', activeClientId)
 
     setLoading(true)
     setError('')
@@ -70,7 +76,15 @@ export default function ProjectsArchivePage() {
       })
 
     return () => controller.abort()
-  }, [year, month])
+  }, [year, month, activeWorkTagId, activeClientId])
+
+  useEffect(() => {
+    if (!selectedProject || galleryPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    const media = projectMedia(selectedProject)
+    if (media.length < 2) return undefined
+    const timer = window.setInterval(() => setSelectedMedia((index) => (index + 1) % media.length), 5000)
+    return () => window.clearInterval(timer)
+  }, [selectedProject, galleryPaused])
 
   useEffect(() => {
     if (!selectedProject && !selectedWorkTag) return undefined
@@ -207,7 +221,7 @@ export default function ProjectsArchivePage() {
           <div className="dynamic-project-panel" onClick={(event) => event.stopPropagation()}>
             <div className="dynamic-project-header"><button type="button" className="lightbox-close-button" onClick={() => setSelectedProject(null)} aria-label="Close project gallery"><X size={16} /></button></div>
             <div className="dynamic-project-body">
-              <div className="dynamic-project-gallery">
+              <div className="dynamic-project-gallery" onMouseEnter={() => setGalleryPaused(true)} onMouseLeave={() => setGalleryPaused(false)} onFocusCapture={() => setGalleryPaused(true)} onBlurCapture={() => setGalleryPaused(false)}>
                 <div className="dynamic-project-viewer">
                   {currentMedia?.type === 'drive' ? <iframe src={mediaHref(currentMedia)} title={currentMedia.label || 'Project video'} allow="autoplay; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /> : currentMedia?.url ? <img src={currentMedia.url} alt={currentMedia.label || selectedProject.title} /> : <span className="dynamic-project-empty">Project media will be added soon.</span>}
                   {media.length > 1 && <>
@@ -216,9 +230,13 @@ export default function ProjectsArchivePage() {
                   </>}
                 </div>
                 {currentMedia && <div className="dynamic-project-caption"><span>{currentMedia.label || 'Project media'}</span><span>{selectedMedia + 1} / {media.length}</span></div>}
+                <div className="dynamic-project-thumbnails" aria-label="All project media">
+                  {media.map((item, index) => <button type="button" className={index === selectedMedia ? 'selected' : ''} onClick={() => setSelectedMedia(index)} key={`${item.url}-${index}`}>{item.type === 'image' ? <img src={item.url} alt="" loading="lazy" /> : <span className="dynamic-project-video-thumb"><Play size={16}/></span>}<span>{item.type === 'drive' ? 'Video URL' : 'Image URL'}</span><small>{item.label || `Media ${index + 1}`}</small></button>)}
+                </div>
               </div>
               <aside className="dynamic-project-details">
-                <h2 id="archive-project-title">{selectedProject.title}</h2>
+                <h2 id="archive-project-title"><a href={`/projects.html?project_id=${selectedProject.id}`}>{selectedProject.title}</a></h2>
+                {selectedProject.client_name && <p className="dynamic-project-client-link"><a href={`/projects.html?client_id=${selectedProject.client_id}`}>{selectedProject.client_name} <ArrowUpRight size={13}/></a></p>}
                 <p>{selectedProject.description}</p>
                 {selectedProject.work_tags?.length > 0 && <div className="dynamic-project-work-tags">
                   <h3>Work tags</h3>
