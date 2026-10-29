@@ -1360,24 +1360,43 @@
   gap: 11px;
 }
 .nav-wrap .brand {
-  width: 66px;
-  height: 46px;
-  flex: 0 0 66px;
+  width: 132px;
+  height: 72px;
+  flex: 0 0 132px;
 }
 .nav-wrap .header-brand-name {
   color: #fff;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: .015em;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: .12em;
   line-height: 1.1;
   white-space: nowrap;
+  text-transform: uppercase;
   text-shadow: 0 1px 8px rgba(0, 0, 0, .55);
 }
 @media (max-width: 560px) {
   .nav-wrap .brand-lockup { gap: 8px; }
-  .nav-wrap .brand { width: 52px; height: 38px; flex-basis: 52px; }
-  .nav-wrap .header-brand-name { font-size: 15px; }
+  .nav-wrap .brand { width: 104px; height: 58px; flex-basis: 104px; }
+  .nav-wrap .header-brand-name { font-size: 12px; letter-spacing: .08em; }
+}
+
+/* Requested interaction polish: black navigation glow and WhatsApp green hover. */
+.nav-wrap .nav button,
+.nav-wrap .header-whatsapp,
+.nav-wrap .header-quote,
+.nav-wrap .menu-toggle {
+  text-shadow: 0 0 5px rgba(0, 0, 0, .95), 0 0 16px rgba(0, 0, 0, .72), 0 2px 5px rgba(0, 0, 0, .9);
+}
+.nav-wrap .nav button:hover,
+.nav-wrap .header-whatsapp:hover {
+  color: #fff !important;
+  text-shadow: 0 0 7px rgba(0, 0, 0, .98), 0 0 22px rgba(0, 0, 0, .85), 0 2px 5px #000;
+}
+.nav-wrap .header-whatsapp:hover {
+  background: #25D366;
+  border-color: #25D366;
+  filter: drop-shadow(0 0 8px rgba(37, 211, 102, .42));
 }
 
 .dynamic-project-viewer {
@@ -1434,12 +1453,41 @@
   .dynamic-project-nav-next { right: 10px; }
 }
 .footer-compact-brand img {
-  width: 62px !important;
-  height: 42px !important;
+  width: 96px !important;
+  height: 52px !important;
   object-fit: contain !important;
   object-position: left center !important;
   filter: brightness(0) invert(1) !important;
   opacity: .94;
+}
+.footer-compact {
+  grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+  align-items: center;
+  gap: 22px !important;
+}
+.footer-compact nav {
+  gap: 16px !important;
+}
+.footer-compact nav button,
+.footer-compact-contact a,
+.footer-compact small {
+  font-size: 13px !important;
+  letter-spacing: .02em;
+}
+.footer-compact-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px !important;
+}
+.footer-compact-contact a {
+  padding: 8px 10px;
+  border: 1px solid rgba(232, 222, 212, .34);
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.footer-compact-contact a:hover {
+  color: #242321 !important;
+  background: #e8ded4;
+  border-color: #e8ded4;
 }
 @media (prefers-reduced-motion: reduce) {
   .project-thumbnail-slide,
