@@ -832,35 +832,34 @@
 /* Soft logo silhouette backing and brand-red CTAs. */
 :root { --brand-deep-red: rgb(69, 0, 0); }
 .brand { position: relative; isolation: isolate; }
-.brand-palette {
+.brand-arc {
   position: absolute;
   z-index: 0;
   top: 50%;
-  left: 50%;
-  width: calc(100% + 24px);
-  height: calc(100% + 18px);
-  transform: translate(-50%, -50%) rotate(-6deg);
-  border: 1px solid rgba(245, 233, 218, .24);
-  border-radius: 47% 53% 59% 41% / 41% 49% 51% 59%;
-  background: linear-gradient(135deg, rgba(245, 233, 218, .48), rgba(145, 120, 99, .22));
-  box-shadow: 0 0 26px rgba(232, 211, 188, .12);
-  filter: blur(10px);
-  opacity: .78;
-  transition: opacity .42s ease, filter .42s ease, transform .5s cubic-bezier(.22, 1, .36, 1);
+  left: 10%;
+  width: 78%;
+  height: 112%;
+  transform: translateY(-50%) rotate(-18deg);
+  border: 2px solid rgba(245, 233, 218, .42);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(232, 211, 188, .12);
+  opacity: .8;
+  transition: opacity .42s ease, transform .5s cubic-bezier(.22, 1, .36, 1);
   pointer-events: none;
 }
 @media (max-width: 640px) {
-  .brand-palette { width: calc(100% + 16px); height: calc(100% + 14px); filter: blur(8px); }
+  .brand-arc { width: 82%; height: 108%; }
 }
 @media (hover: hover) and (pointer: fine) {
-  .brand:hover .brand-palette {
+  .brand:hover .brand-arc {
     opacity: 0;
-    filter: blur(16px);
-    transform: translate(-50%, -50%) rotate(-6deg) scale(.96);
+    transform: translateY(-50%) rotate(-18deg) scale(.96);
   }
 }
-.brand:focus-visible .brand-palette { opacity: 0; filter: blur(16px); }
-@media (prefers-reduced-motion: reduce) { .brand-palette { transition: none; } }
+.brand:focus-visible .brand-arc { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .brand-arc { transition: none; } }
 .brand img { position: relative; z-index: 1; }
 
 .button.dark { background-color: var(--brand-deep-red); }
@@ -1375,7 +1374,8 @@
   font-family: 'Orbitron', 'Helvetica Neue', Arial, sans-serif;
   display: block;
   width: 88px;
-  font-size: 12px;
+  margin-left: -18px;
+  font-size: 18px;
   font-weight: 500;
   letter-spacing: .08em;
   line-height: 1.25;
@@ -1387,7 +1387,7 @@
 @media (max-width: 560px) {
   .nav-wrap .brand-lockup { gap: 8px; min-width: 0; flex-direction: row; }
   .nav-wrap .brand { width: 160px; height: 58px; flex-basis: 160px; }
-  .nav-wrap .header-brand-name { width: 70px; font-size: 9px; letter-spacing: .06em; }
+  .nav-wrap .header-brand-name { width: 70px; margin-left: -10px; font-size: 13.5px; letter-spacing: .06em; }
 }
 
 /* Requested interaction polish: black navigation glow and WhatsApp green hover. */
