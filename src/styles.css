@@ -1374,7 +1374,7 @@
   font-family: 'Orbitron', 'Helvetica Neue', Arial, sans-serif;
   display: block;
   width: 88px;
-  margin-left: -18px;
+  margin-left: -160px;
   font-size: 18px;
   font-weight: 500;
   letter-spacing: .08em;
@@ -1387,7 +1387,7 @@
 @media (max-width: 560px) {
   .nav-wrap .brand-lockup { gap: 8px; min-width: 0; flex-direction: row; }
   .nav-wrap .brand { width: 160px; height: 58px; flex-basis: 160px; }
-  .nav-wrap .header-brand-name { width: 70px; margin-left: -10px; font-size: 13.5px; letter-spacing: .06em; }
+  .nav-wrap .header-brand-name { width: 70px; margin-left: -160px; font-size: 13.5px; letter-spacing: .06em; }
 }
 
 /* Requested interaction polish: black navigation glow and WhatsApp green hover. */
