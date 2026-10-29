@@ -836,26 +836,26 @@
   position: absolute;
   z-index: 0;
   top: 50%;
-  left: 10%;
-  width: 78%;
-  height: 112%;
-  transform: translateY(-50%) rotate(-18deg);
-  border: 2px solid rgba(245, 233, 218, .42);
-  border-right-color: transparent;
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  box-shadow: 0 0 18px rgba(232, 211, 188, .12);
-  opacity: .8;
-  transition: opacity .42s ease, transform .5s cubic-bezier(.22, 1, .36, 1);
+  left: 0;
+  width: 100%;
+  height: 108%;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50% 50% 4% 4% / 38% 38% 4% 4%;
+  background: rgba(255, 255, 255, .5);
+  box-shadow: 0 0 22px rgba(255, 255, 255, .22);
+  filter: blur(10px);
+  opacity: 1;
+  transition: opacity .42s ease, filter .42s ease;
   pointer-events: none;
 }
 @media (max-width: 640px) {
-  .brand-arc { width: 82%; height: 108%; }
+  .brand-arc { width: 100%; height: 106%; filter: blur(8px); }
 }
 @media (hover: hover) and (pointer: fine) {
   .brand:hover .brand-arc {
-    opacity: 0;
-    transform: translateY(-50%) rotate(-18deg) scale(.96);
+    opacity: .72;
+    filter: blur(13px);
   }
 }
 .brand:focus-visible .brand-arc { opacity: 0; }
