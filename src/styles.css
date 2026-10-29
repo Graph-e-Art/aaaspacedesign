@@ -837,7 +837,7 @@
   z-index: 0;
   top: 50%;
   left: 0;
-  width: 78px;
+  width: 94px;
   height: 78px;
   transform: translateY(-50%);
   border: 0;
@@ -850,7 +850,7 @@
   pointer-events: none;
 }
 @media (max-width: 640px) {
-  .brand-arc { width: 60px; height: 60px; filter: blur(8px); }
+  .brand-arc { width: 72px; height: 60px; filter: blur(8px); }
 }
 @media (hover: hover) and (pointer: fine) {
   .brand:hover .brand-arc {
