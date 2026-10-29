@@ -1358,22 +1358,30 @@
 
 /* Homepage refinement: clear brand lockup, cinematic project transitions, and direct gallery controls. */
 .nav-wrap .brand-lockup {
-  gap: 11px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
   min-width: 370px;
+  padding-top: 14px;
   justify-self: start;
   overflow: visible;
 }
 .nav-wrap .brand {
   width: 264px;
-  height: 72px;
+  height: 58px;
   flex: 0 0 264px;
 }
 .nav-wrap .header-brand-name {
+  position: absolute;
+  top: 0;
+  left: 0;
   color: #fff;
   font-family: 'Orbitron', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: .12em;
+  letter-spacing: .1em;
   line-height: 1.1;
   white-space: nowrap;
   text-transform: uppercase;
@@ -1381,9 +1389,9 @@
   flex: 0 0 auto;
 }
 @media (max-width: 560px) {
-  .nav-wrap .brand-lockup { gap: 8px; min-width: 0; }
-  .nav-wrap .brand { width: 160px; height: 58px; flex-basis: 160px; }
-  .nav-wrap .header-brand-name { font-size: 12px; letter-spacing: .08em; }
+  .nav-wrap .brand-lockup { gap: 0; min-width: 0; padding-top: 12px; }
+  .nav-wrap .brand { width: 160px; height: 46px; flex-basis: 160px; }
+  .nav-wrap .header-brand-name { font-size: 10px; letter-spacing: .08em; }
 }
 
 /* Requested interaction polish: black navigation glow and WhatsApp green hover. */
