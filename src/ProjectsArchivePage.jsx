@@ -197,6 +197,14 @@ export default function ProjectsArchivePage() {
     }
   }
 
+  const resetFilters = () => {
+    setYear('')
+    setMonth('')
+    setClientId('')
+    setWorkTagId('')
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+
   return (
     <div className="all-projects-page">
       <header className="all-projects-header">
@@ -217,6 +225,7 @@ export default function ProjectsArchivePage() {
           <label>Month<select value={month} onChange={(event) => setMonth(event.target.value)}><option value="">All months</option>{months.map((item) => <option key={item} value={item}>{new Date(2000, item - 1, 1).toLocaleString('en', { month: 'long' })}</option>)}</select></label>
           <label>Client tag<select value={clientId} onChange={(event) => setClientId(event.target.value)}><option value="">All clients</option>{clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label>Work tag<select value={workTagId} onChange={(event) => setWorkTagId(event.target.value)}><option value="">All work tags</option>{workTags.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <button className="button reset-filter-button" type="button" onClick={resetFilters}>Reset Filter</button>
         </div>
         {filterError && <p className="archive-error" role="status">{filterError}</p>}
         {loading ? <p className="archive-status" role="status">Loading projects…</p> : error && !projects.length ? <p className="archive-status archive-error" role="alert">{error}</p> : projects.length ? <>
