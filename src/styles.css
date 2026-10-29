@@ -1359,6 +1359,9 @@
 /* Homepage refinement: clear brand lockup, cinematic project transitions, and direct gallery controls. */
 .nav-wrap .brand-lockup {
   gap: 11px;
+  min-width: 370px;
+  justify-self: start;
+  overflow: visible;
 }
 .nav-wrap .brand {
   width: 264px;
@@ -1375,9 +1378,10 @@
   white-space: nowrap;
   text-transform: uppercase;
   text-shadow: 0 1px 8px rgba(0, 0, 0, .55);
+  flex: 0 0 auto;
 }
 @media (max-width: 560px) {
-  .nav-wrap .brand-lockup { gap: 8px; }
+  .nav-wrap .brand-lockup { gap: 8px; min-width: 0; }
   .nav-wrap .brand { width: 160px; height: 58px; flex-basis: 160px; }
   .nav-wrap .header-brand-name { font-size: 12px; letter-spacing: .08em; }
 }
@@ -1588,4 +1592,21 @@
 @media (max-width: 560px) {
   .nav-wrap .brand { width: 160px; flex-basis: 160px; }
   .footer-compact-contact a { width: 28px; height: 28px; }
+}
+
+/* Keep enlarged brand lockup in its own header column. */
+@media (min-width: 901px) {
+  .header-main {
+    grid-template-columns: minmax(370px, 1fr) auto minmax(170px, 1fr);
+  }
+  .nav-wrap .nav {
+    z-index: 4;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 1100px) and (min-width: 901px) {
+  .header-main {
+    grid-template-columns: minmax(340px, 1fr) auto minmax(130px, 1fr);
+  }
+  .nav-wrap .brand-lockup { min-width: 340px; }
 }

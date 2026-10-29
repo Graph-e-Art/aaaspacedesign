@@ -146,9 +146,6 @@ export default function ProjectThumbnail({ project }) {
           </span>
         )
       })}
-      <span className="project-thumbnail-indicator">
-        <span className="project-thumbnail-count"><strong>{String(currentIndex + 1).padStart(2, '0')}</strong><span> / {String(slides.length).padStart(2, '0')}</span></span>
-      </span>
     </span>
   )
 }
